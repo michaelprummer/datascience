@@ -14,4 +14,8 @@ Example:
 
 ### Install MongoDB
 
+https://docs.mongodb.com/manual/installation/
+
+Run:
+
 * $ mongod

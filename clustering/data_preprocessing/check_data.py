@@ -3,18 +3,21 @@ import gzip
 from timeit import timeit
 
 class Fileprocessing():
-    def __init__(self,begin_path):
-        self.path = begin_path
+    def __init__(self,input_path,out_path):
+        self.input_path = input_path
+        self.output_path = out_path
         self.nr = 1
-        self.out = codecs.open(self.path[:-5] + "out_" + str(self.nr) + ".csv", "w", "utf-8")
+        self.out = 0
         self.processed_folders = 0
         self.read_tweets = 0
         self.saved_tweets = 0
         self.whole_saved_tweets = 0
-        folders = os.listdir(begin_path)
+        folders = os.listdir(self.input_path)
         for folder in folders:
-            self.process_folder_per_folder(begin_path + folder + "/")
-        
+            duration = timeit(lambda: self.process_folder_per_folder(folder), number=1),
+             
+            showDuration(duration, folder)
+            
         print "Saved: " + str(self.whole_saved_tweets)
         print "Read: " + str(self.read_tweets)
         
@@ -27,10 +30,15 @@ class Fileprocessing():
         return data
     
     def process_folder_per_folder(self, folder):
-        files_in_folder = os.listdir(folder)
+        files_in_folder = os.listdir(self.input_path + folder + "/")
+        if self.out:
+            self.out.close()
+        
+        self.out = codecs.open(self.output_path + folder + ".csv", "w", "utf-8")
+ 
         for file in files_in_folder:
             try:
-                with gzip.open(folder + file, "rb", "utf-8") as infile:
+                with gzip.open(self.input_path + folder + "/" + file, "rb", "utf-8") as infile:
                     for line in infile:
                           
                         self.read_tweets += 1
@@ -41,13 +49,7 @@ class Fileprocessing():
         self.processed_folders +=1
                 
     def extract_data_from_json_element(self,element):
-        if (self.saved_tweets >= 1000000):
-            print "Saved Tweets: " + str(self.whole_saved_tweets)
-            self.out.close()
-            self.saved_tweets = 0
-            self.nr += 1
-            self.out = codecs.open(self.path[:-5] + "out_" + str(self.nr) + ".csv", "w", "utf-8")
-            
+                    
         output = []
         if element["lang"] == "en":
             
@@ -113,10 +115,12 @@ class Fileprocessing():
         
         return text
 
-def showDuration(duration):
-    print "Elapsed time: {duration}s".format(duration=duration)
+def showDuration(duration, folder):
+    print "Elapsed time for {folder}: {duration}s".format(folder=folder,duration=duration[0])
 
 if __name__ == '__main__':
-    path = "C:/Users/Jennifer/Documents/semester_2/data_science/data/test/"
-    duration = timeit(lambda: Fileprocessing(path), number=1), 
-    showDuration(duration)
+    input_path = "C:/Users/Jennifer/Documents/semester_2/data_science/data/test2/"
+    output_path = "C:/Users/Jennifer/Documents/semester_2/data_science/data/"
+    fp = Fileprocessing(input_path,output_path)
+    #duration = timeit(lambda: Fileprocessing(path), number=1), 
+    #showDuration(duration)

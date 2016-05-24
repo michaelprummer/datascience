@@ -1,21 +1,12 @@
 #datascience
 
-How to use Python Jupyter Notebook File with MongoDB
 
-### Anaconda
+### Getting started with bootstrap
 
-A free package manager, environment manager, Python distribution..
+Grunt is needed to generate css and js files automatically. Grunt will be installed locally with `npm install`
 
-Example:
+`grunt dist`
+Regenerates the /dist/ directory with compiled and minified CSS and JavaScript files. As a Bootstrap user, this is normally the command you want.
 
-* conda create -n bunny python=2.7 numpy pandas pymongo scipy scikit-learn jupyter
-* source activate bunny
-* jupyter notebook
-
-### Install MongoDB
-
-https://docs.mongodb.com/manual/installation/
-
-Run:
-
-* $ mongod
+`grunt watch
+Watches the Less source files and automatically recompiles them to CSS whenever you save a change.

@@ -110,6 +110,8 @@ class Fileprocessing():
     def preprocess_text(self, text):
         if "\t" in text:
             text = re.sub("\t"," ", text)
+        if "\r" in text:
+            text = re.sub("\r"," ", text)
         if "\n" in text:
             text = re.sub("\n", " ", text)
         

@@ -1,5 +1,12 @@
+<html>
+<head>
+    <script src="../js/jquery.js"></script>
+</head>
+
+<body>
+
 <?php
-    require_once("db/DB.php");
+    require_once("api/DB.php");
     $db = new DB('root', '', 'test');
 
 
@@ -7,13 +14,22 @@
 ?>
 
 
-<script>
 
-    $.ajax({ url: '/my/site',
-        data: {action: 'test'},
-        type: 'post',
-        success: function(output) {
-            alert(output);
-        }
-    });
+<button onclick="SetupDB();">Setup Database</button>
+
+<script type="text/javascript">
+    function SetupDB(){
+
+        $.ajax({ url: 'api/Api.php',
+            data: {action: 'setup'},
+            type: 'post',
+            success: function(output) {
+                //alert(output);
+            }
+        });
+
+    }
 </script>
+
+</body>
+</html>

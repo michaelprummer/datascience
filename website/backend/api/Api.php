@@ -3,10 +3,19 @@
  * Rest api
  */
 
-function test() {
-    if(isset($_POST['test'])) {
-        echo "test 1 2 3";
+if(isset($_POST['action'])) {
+    $action = $_POST['action'];
+
+    switch($action) {
+        case 'setup':  test(); break;
     }
+
 }
+
+function test(){
+    echo "Hi!";
+}
+
+
 
 ?>

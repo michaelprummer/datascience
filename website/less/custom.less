@@ -4,13 +4,20 @@
 /* Custom page CSS
 -------------------------------------------------- */
 
+html, body {
+  height: 100%;
+}
+
 body {
   padding-top: 70px;
+  padding-bottom: 60px;
+  margin: 0 !important;
 }
 
 a:focus {
   outline: none;
 }
+
 a:hover {
   text-decoration: none;
 }
@@ -27,11 +34,18 @@ p {
 
 .navbar-default .navbar-nav > li > a, .navbar-default .navbar-brand {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 500;
   color: @nav-text-color;
-  margin: 5px;
+  margin: 7px;
   border-radius: 5px;
   padding: 18px 20px;
+  -webkit-transition: color 0.2s; /* Safari */
+  transition: color 0.2s;
+}
+
+.navbar-default .navbar-brand {
+  font-size: 28px;
+  font-weight: 600;
 }
 
 .navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
@@ -42,7 +56,7 @@ p {
   color: @brand-primary;
 }
 .navbar-default .navbar-nav > li.active > a, .navbar-default .navbar-nav > li.active > a:hover {
-  background: #000;
+  background-color: inherit;
   color: @brand-primary;
 }
 

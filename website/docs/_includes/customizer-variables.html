@@ -5,7 +5,7 @@
 <div class="row">
   <div class="col-xs-4">
     <label for="input-@gray-base">@gray-base</label>
-    <input id="input-@gray-base" type="text" value="#000" data-var="@gray-base" class="form-control"/>
+    <input id="input-@gray-base" type="text" value="#2c3e50" data-var="@gray-base" class="form-control"/>
   </div>
   <div class="col-xs-4">
     <label for="input-@gray-darker">@gray-darker</label>
@@ -30,10 +30,6 @@
   </div>
   <div class="clearfix"></div>
   <div class="col-xs-4">
-    <label for="input-@brand-primary">@brand-primary</label>
-    <input id="input-@brand-primary" type="text" value="darken(#428bca, 6.5%)" data-var="@brand-primary" class="form-control"/>
-  </div>
-  <div class="col-xs-4">
     <label for="input-@brand-success">@brand-success</label>
     <input id="input-@brand-success" type="text" value="#5cb85c" data-var="@brand-success" class="form-control"/>
   </div>
@@ -41,11 +37,11 @@
     <label for="input-@brand-info">@brand-info</label>
     <input id="input-@brand-info" type="text" value="#5bc0de" data-var="@brand-info" class="form-control"/>
   </div>
-  <div class="clearfix"></div>
   <div class="col-xs-4">
     <label for="input-@brand-warning">@brand-warning</label>
     <input id="input-@brand-warning" type="text" value="#f0ad4e" data-var="@brand-warning" class="form-control"/>
   </div>
+  <div class="clearfix"></div>
   <div class="col-xs-4">
     <label for="input-@brand-danger">@brand-danger</label>
     <input id="input-@brand-danger" type="text" value="#d9534f" data-var="@brand-danger" class="form-control"/>
@@ -61,15 +57,19 @@
   </div>
   <div class="col-xs-4">
     <label for="input-@text-color">@text-color</label>
-    <input id="input-@text-color" type="text" aria-describedby="help-block-@text-color" value="@gray-dark" data-var="@text-color" class="form-control"/>
+    <input id="input-@text-color" type="text" aria-describedby="help-block-@text-color" value="@gray-base" data-var="@text-color" class="form-control"/>
     <p id="help-block-@text-color" class="help-block">Global text color on <code>&lt;body&gt;</code>.</p>
   </div>
+  <div class="col-xs-4">
+    <label for="input-@nav-text-color">@nav-text-color</label>
+    <input id="input-@nav-text-color" type="text" value="#fff" data-var="@nav-text-color" class="form-control"/>
+  </div>
+  <div class="clearfix"></div>
   <div class="col-xs-4">
     <label for="input-@link-color">@link-color</label>
     <input id="input-@link-color" type="text" aria-describedby="help-block-@link-color" value="@brand-primary" data-var="@link-color" class="form-control"/>
     <p id="help-block-@link-color" class="help-block">Global textual link color.</p>
   </div>
-  <div class="clearfix"></div>
   <div class="col-xs-4">
     <label for="input-@link-hover-color">@link-hover-color</label>
     <input id="input-@link-hover-color" type="text" aria-describedby="help-block-@link-hover-color" value="darken(@link-color, 15%)" data-var="@link-hover-color" class="form-control"/>

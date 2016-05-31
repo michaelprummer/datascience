@@ -6541,6 +6541,10 @@ p {
   font-size: 28px;
   font-weight: 600;
 }
+.navbar-brand > img {
+  width: 200px;
+  margin-top: -11px;
+}
 .navbar-default .navbar-brand:focus,
 .navbar-default .navbar-brand:hover {
   color: #fff;

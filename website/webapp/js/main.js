@@ -5,14 +5,33 @@ requirejs.config({
 
 
 // Start the main app logic.
-requirejs(["d3","topojson", "queue", "pikaday"], function(d3, topojson, queue, pikaday ){
+requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
+    function(d3, topojson, queue, moment, Pikaday, layoutCloud ){
 
         var width = $('.main').width(),
             height = $('.main').height();
 
-        var div = d3.select('#map');
+        var selectedCountry;
+        var selectedTopic;
 
+
+        // create date picker
+        var picker = new Pikaday({
+            field: document.getElementById('date'),
+            minDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
+            maxDate: moment("31-12-2015", "DD-MM-YYYY").toDate(),
+            defaultDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
+            setDefaultDate: true,
+            firstDay: 1,
+            format: 'D-M-YYYY',
+            bound: false,
+            container: document.getElementById('date-picker')
+         });
+
+
+        var div = d3.select('#map');
         var svg;
+        var locations;
         var overlay = new google.maps.OverlayView();
         var path;
         var overlayProjection;
@@ -34,10 +53,10 @@ requirejs(["d3","topojson", "queue", "pikaday"], function(d3, topojson, queue, p
             styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#e9e9e9"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
         };
 
-// Create the Google Map using our element and options defined above
+        // Create the Google Map using our element and options defined above
         var map = new google.maps.Map(div.node(), mapOptions);
 
-// Load the  data. When the data comes back, create an overlay.
+        // Load the  json data
         queue()
             .defer(d3.json, "webapp/topo/countries.topo.json")
             .await(ready);
@@ -54,12 +73,22 @@ requirejs(["d3","topojson", "queue", "pikaday"], function(d3, topojson, queue, p
                     .attr('width', 8000)
                     .attr('height', 8000);
 
+                locations = d3.select(overlay.getPanes().overlayMouseTarget)
+                    .append('div')
+                    .attr('id','dataLayer')
+                    .append('svg')
+                    .attr('width', 8000)
+                    .attr('height', 8000);
+
                 svg.append('g')
                     .attr('id','countries')
                     .selectAll('path')
                     .data(countries)
                     .enter().append('path')
                     .attr('id', function(d) { return d.id; });
+
+                locations.append('g')
+                    .attr('id','locations');
 
 
                 overlay.draw = redraw;
@@ -110,7 +139,6 @@ requirejs(["d3","topojson", "queue", "pikaday"], function(d3, topojson, queue, p
                         d3.select(this).classed("hover", !d3.select(this).classed("hover"));
                         map.setOptions({ draggableCursor: 'initial' });
                     });
-
             }
 
             function state_clicked(d) {
@@ -122,26 +150,102 @@ requirejs(["d3","topojson", "queue", "pikaday"], function(d3, topojson, queue, p
                     .filter(function(d) { return state_id == d.id;  })
                     .attr('class', 'active');
 
-                zoom(state_name);
+                selectedCountry = state_name;
+                setCenter(state_name);
+                getTrends(state_name);
 
             }
 
-            function zoom(state_name) {
+            function topicClicked() {
+
+                svg.selectAll('path')
+                    .classed('active',false);
+
+                showDistribution();
+                zoom(4);
+            }
+
+
+
+            function setCenter(state_name) {
                 geocoder.geocode( {'address' : state_name}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {
                         if (map.getZoom() < 4) {
-                            //map.setZoom(3);
-                            //map.panTo(results[0].geometry.location);
+                            map.setCenter(results[0].geometry.location);
                         }
                     }
                 });
             }
 
+            function zoom(zoom) {
+                map.setZoom(zoom);
+            }
+
             overlay.setMap(map);
+
+            function getTrends(state_name){
+
+                newWordCloud(["dre", "beat", "billionair", "apple"], '#e9d460', cluster1);
+                newWordCloud(["cleveland", "football", "brown", "draft", "dallas"], '#F62459', cluster2);
+                newWordCloud(["mexican", "celebrity", "cinco", "mayo"], '#1F3A93', cluster3);
+
+            }
+
+
+            function newWordCloud(words, color, fn) {
+                layoutCloud().size([450, 100])
+                    .words(words.map(function(d) {
+                        return {text: d, size: 14 + Math.random() * 30, fill: color}
+                    }))
+                    .fontSize(function(d) { return d.size; })
+                    .on("end", fn)
+                    .start();
+            }
+
+            function draw(words, id) {
+                d3.select(id)
+                    .append("g")
+                    .attr("transform", "translate(225,50)")
+                    .selectAll("text")
+                    .data(words)
+                    .enter().append("text")
+                    .style("font-size", function(d) { return d.size + "px"; })
+                    .style("font-family", "Helvetica Neue")
+                    .style("fill", function(d, i) { return d.fill; })
+                    .style("opacity", 0.7)
+                    .attr("text-anchor", "middle")
+                    .attr("transform", function(d) {
+                        return "translate(" + [d.x, d.y] + ")rotate(" + 0 + ")";
+                    })
+                    .text(function(d) { return d.text; });
+            }
+
+
+            function cluster1(words) {
+                draw(words, '.cluster-1');
+                $('.cluster-1').click(function() {
+                    topicClicked();
+                });
+            }
+            function cluster2(words) {
+                draw(words, '.cluster-2');
+            }
+            function cluster3(words) {
+                draw(words, '.cluster-3');
+            }
 
             $(window).bind("resize", function() {
                 redraw();
             });
+
+
+            function showDistribution() {
+                var topicFound = {"1":[-122.05,37.43], "2":[-120.12,36.98]};
+
+                var circles = d3.select(overlay.getPanes().overlayMouseTarget)
+                    .append
+            }
         }
+
 
     });

@@ -6585,6 +6585,8 @@ body {
   /* Set the fixed height of the footer here */
   height: 30px;
   background-color: #18bc9c;
+  -webkit-box-shadow: inset 0 10px 8px -10px rgba(0, 0, 0, .25);
+          box-shadow: inset 0 10px 8px -10px rgba(0, 0, 0, .25);
 }
 .footer .container p {
   padding: 4px 20px;

@@ -8,12 +8,51 @@
 
 .panel {
     background-color: #fff;
+    border-bottom:none;
+    -webkit-box-shadow:  0 -4px 4px rgba(0,0,0,.25);
+    -moz-box-shadow: 0 -4px 4px rgba(0,0,0,.25);
+    box-shadow:  0 -4px 4px rgba(0,0,0,.25);
+    padding-top:20px;
+    z-index: 10;
+    height: 100%;
+    margin: 0;
+}
+
+
+/*Styling of date picker */
+input#date {
+    display: none;
+}
+.pika-single {
+    color: #2c3e50;
+    width: 258px;
+    margin: 0 auto 50px;
+}
+.is-today .pika-button {
+    color: #18bc9c;
+}
+.is-selected .pika-button {
+    background: #18bc9c;
+}
+.pika-button:hover {
+    color: #fff;
+    background: #2c3e50;
+}
+.pika-table abbr {
+    border-bottom: none;
+    cursor: help;
+    text-decoration: none;
+}
+
+.cluster-1, .cluster-2, .cluster-3 {
+    cursor: pointer;
 }
 #map {
     margin: 0;
     padding: 0;
     cursor: pointer;
     height: 100%;
+    box-shadow: 0 1px 0px rgba(0,0,0,.25);
 }
 
 #d3map {

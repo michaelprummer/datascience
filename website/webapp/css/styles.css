@@ -1,14 +1,18 @@
+@import "pikaday.css";
+
 .main {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
+.panel {
+    background-color: #fff;
+}
 #map {
     margin: 0;
     padding: 0;
     cursor: pointer;
-    width: 100%;
     height: 100%;
 }
 

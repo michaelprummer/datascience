@@ -34,7 +34,6 @@
         <li><a href="index.html">Home</a></li>
         <li class="active"><a href="demo.html">Demo</a></li>
         <li><a href="documentation.html">Documentation</a></li>
-        <li><a href="http://www.dbs.ifi.lmu.de/cms/Hauptseite" target="_blank">DBS LMU</a></li>
       </ul>
     </div>
   </div>
@@ -42,6 +41,12 @@
 
 <!-- Begin page content -->
 <div class="main">
+    <div class="panel col-md-4">
+
+    </div>
+    <div id="map" class="col-md-8">
+
+    </div>
 </div>
 
 
@@ -63,9 +68,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1INXdnxMOy0qiQ5NimksF1dWD3sCKwCs"
         type="text/javascript"></script>
 <script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
-<script src="webapp/js/lib/d3.v3.min.js"></script>
-<script src="webapp/js/lib/topojson.v1.min.js"></script>
-<script src="webapp/js/initGoogleMap.js"></script>
+<script data-main="webapp/js/main" src="webapp/js/require.min.js"></script>
 
 </body>
 </html>

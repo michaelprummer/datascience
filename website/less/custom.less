@@ -9,8 +9,8 @@ html, body {
 }
 
 body {
-  padding-top: 70px;
-  padding-bottom: 60px;
+  padding-top: 54px;
+  padding-bottom: 30px;
   margin: 0 !important;
 }
 
@@ -32,25 +32,27 @@ p {
 }
 
 
-.navbar-default .navbar-nav > li > a, .navbar-default .navbar-brand {
+.navbar-default .navbar-nav > li > a {
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 300;
   color: @nav-text-color;
   margin: 7px;
   border-radius: 5px;
-  padding: 18px 20px;
+  padding: 10px 20px 10px;
   -webkit-transition: color 0.2s; /* Safari */
-  transition: color 0.2s;
+  transition: color 0.2s;;
 }
 
 .navbar-default .navbar-brand {
   font-size: 28px;
   font-weight: 600;
+  margin: 0;
+  padding: 10px 20px 10px;
 }
 
 .navbar-brand > img {
-  width: 200px;
-  margin-top: -11px;
+  width: 180px;
+  margin-top: -2px;
 }
 
 .navbar-default .navbar-brand:focus, .navbar-default .navbar-brand:hover {
@@ -93,12 +95,15 @@ body {
   bottom: 0;
   width: 100%;
   /* Set the fixed height of the footer here */
-  height: 60px;
+  height: 30px;
   background-color: @brand-primary;
 }
 
-.footer p {
+.footer .container p {
   color: @nav-text-color;
+  font-size: 14px;
+  padding: 4px 20px;
+  margin: 0;
 }
 
 

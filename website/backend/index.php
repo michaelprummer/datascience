@@ -2,35 +2,47 @@
 <head>
     <script src="../js/jquery.js"></script>
     <script src="js/setup.js"></script>
+    <link href="style.css" rel="stylesheet">
 </head>
 <body>
 
-<h3>Database Setup</h3>
-<button onclick="SetupDB();">Create DB</button>
-<button onclick="ClearDB();">Clear Tables</button>
-<button onclick="RemoveDB();">Remove DB</button>
+<div class="box">
+    <h3>Database Setup</h3>
+    <button onclick="SetupDB();">Create DB</button>
+    <button onclick="ClearDB();">Clear Tables</button>
+    <button onclick="RemoveDB();">Remove DB</button>
+</div>
+<div class="box">
+    <h3>File Import</h3>
+    <form action="" method="post" enctype="multipart/form-data">
+        Number of Tweets:<br>
+        <input type="number" value="30" name="numOfTweets">
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="submit" value="Import" name="submit">
+    </form>
+</div>
 
-<h3>File Import</h3>
-
-
-<form action="" method="post" enctype="multipart/form-data">
-    Select Twitter CSV file:<br>
-    <input type="number" value="30" name="numOfTweets">
-    <input type="file" name="fileToUpload" id="fileToUpload">
-    <input type="submit" value="Import" name="submit">
-</form>
 <?php
-function info($t)
-{
+
+/**
+ * Print with html
+ */
+function info($t){
     echo "<p>" . $t . "</p>";
 }
 
+/**
+ * Clear data
+ */
 function twitter_encode($s){
     return trim(preg_replace('/ +/', ' ', preg_replace('/[^A-Za-z0-9 ]/', ' ', urldecode(html_entity_decode(strip_tags($s))))));
     //return addslashes($s);
     ///utf8_encode
 }
 
+/**
+ * Import csv data
+ */
 if (isset($_POST["submit"])) {
     if (isset($_FILES["fileToUpload"]["tmp_name"])) {
         echo "File: " . $_FILES["fileToUpload"]["name"] . ($_FILES["fileToUpload"]["size"] / 1024) . " Kb<br />";
@@ -89,14 +101,7 @@ if (isset($_POST["submit"])) {
     }
 
 }
-
-
-
 ?>
-
-
-
-
 </body>
 
 

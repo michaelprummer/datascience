@@ -1,0 +1,15 @@
+.box {
+    padding:0.25em 1em 1em 1em;
+    margin: 1em 0.25em;
+    background: #dedede;
+    border-radius: 0.5em;
+    box-shadow: 0 0 10px #999;
+    width: 600px;
+}
+
+
+.box h3 {
+    font-family: "Helvetica Neue Light", "HelveticaNeue-Light", "Helvetica Neue", Calibri, Helvetica, Arial, sans-serif;
+    text-shadow: 0 1px #fff;
+    color: #0D3349;
+}

@@ -1,3 +1,4 @@
+<?php //print_r($db->select('SELECT ID FROM objects WHERE ID = ?', array(0), array('%d'))); ?>
 <?php
 if ( !class_exists( 'DB' ) ) {
     class DB {
@@ -23,7 +24,6 @@ if ( !class_exists( 'DB' ) ) {
 
             if (!$checkDB) {
                 $db->query("CREATE DATABASE $dbName");
-                echo "Database created.";
             }
         }
 

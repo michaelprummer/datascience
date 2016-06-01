@@ -1,15 +1,38 @@
+<?php //print_r($db->select('SELECT ID FROM objects WHERE ID = ?', array(0), array('%d'))); ?>
 <?php
 if ( !class_exists( 'DB' ) ) {
     class DB {
         public function __construct($user, $password, $database, $host = 'localhost') {
             $this->user = $user;
             $this->password = $password;
-            $this->database = $database;
+
+            if($database!=null){
+                $this->database = $database;
+            }
             $this->host = $host;
         }
+
         protected function connect() {
             return new mysqli($this->host, $this->user, $this->password, $this->database);
         }
+
+
+        public function select_db($dbName) {
+            $this->database = $dbName;
+            $db = new mysqli($this->host, $this->user, $this->password);
+            $checkDB = mysqli_select_db($db, $dbName);
+
+            if (!$checkDB) {
+                $db->query("CREATE DATABASE $dbName");
+            }
+        }
+
+
+        public function query_bool($query) {
+            $db = $this->connect();
+            return $db->query($query);
+        }
+
         public function query($query) {
             $db = $this->connect();
             $result = $db->query($query);

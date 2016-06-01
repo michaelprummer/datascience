@@ -26,7 +26,8 @@ function info($t)
 }
 
 function twitter_encode($s){
-    return urlencode($s);
+    return trim(preg_replace('/ +/', ' ', preg_replace('/[^A-Za-z0-9 ]/', ' ', urldecode(html_entity_decode(strip_tags($s))))));
+    //return addslashes($s);
     ///utf8_encode
 }
 
@@ -44,17 +45,25 @@ if (isset($_POST["submit"])) {
 
                 while (($line = fgets($handle)) !== false && $max > 0):
                     $parts = preg_split("/[\t]/", $line);
-                    $max--; ?>
+                    //die(print_r($parts));
+                    $max--;
+
+                    $lola = substr($parts[4], 1 , -1);
+                    $lola = explode(", ", $lola);
+                    ?>
+
                     <script type="text/javascript">
                         $.ajax({
                             url: 'api/Api.php',
                             data: {
                                 action: "addTweet",
-                                time: "<?php echo ($parts[2]);?>",
-                                username: "<?php echo ($parts[1]);?>",
-                                content: "<?php echo ($parts[3]);?>",
-                                lola: "<?php echo ($parts[4]);?>",
-                                location: "<?php echo twitter_encode($parts[5]);?>"
+                                time: "<?php echo ($parts[0]); ?>",
+                                username: "<?php echo ($parts[1]); ?>",
+                                tweetId: "<?php echo ($parts[2]); ?>",
+                                content: "<?php echo addslashes($parts[3]); ?>",
+                                latitude: "<?php echo $lola[0]; ?>",
+                                longitude: "<?php echo $lola[1]; ?>",
+                                location: "<?php echo twitter_encode($parts[5]); ?>"
                             },
                             type: 'post'
                             /*,success: function (output) {

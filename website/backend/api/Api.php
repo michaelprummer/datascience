@@ -12,10 +12,18 @@ if(isset($_POST['action'])) {
     $action = $_POST['action'];
 
     switch($action) {
-        case 'setup':  database_setup(); break;
-        case 'remove': database_remove() ; break;
-        case 'clear':  database_clear(); break;
-        case 'addTweet':  add_tweet($_POST['time'], $_POST['username'],$_POST['content'],$_POST['lola'],$_POST['location']); break;
+        case 'setup':  database_setup();
+            break;
+
+        case 'remove': database_remove();
+            break;
+
+        case 'clear':  database_clear();
+            break;
+
+        case 'addTweet':
+            add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+            break;
     }
 
 }
@@ -48,10 +56,12 @@ function database_setup() {
 
     $table = "CREATE TABLE Tweets (
         id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        time TIMESTAMP,
+        time int(10),
         username VARCHAR(30) NOT NULL,
+        twitter_id VARCHAR(30) NOT NULL,
         content VARCHAR(255),
-        lola VARCHAR(30),
+        latitude DECIMAL(10, 8) NOT NULL,
+        longitude  DECIMAL(11, 8) NOT NULL,
         location VARCHAR(30)
     )";
 
@@ -59,14 +69,15 @@ function database_setup() {
     echo $r==1?"OK":"FAILED";
 }
 
-function add_tweet($time, $username, $content, $lola, $location){
+function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
     global $db;
-    $db = check_db();
+    //$db = check_db();
+    $timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`id`, `time`, `username`, `content`, `lola`, `location`) VALUES (NULL, '$time', '$username', '$content', '$lola', '$location');";
+    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`id`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
 
-    $r = $db -> query_bool($insert);
-    //return $r;
+    $db -> query_bool($insert);
+    //return $reult;
 }
 
 ?>

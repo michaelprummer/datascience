@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Tweeting History</title>
+  <title>TrendingMap</title>
 
-  <!-- Bootstrap core CSS -->
-  <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="webapp/css/styles.css" rel="stylesheet">
 </head>
 
 <body>
@@ -23,7 +24,9 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">Tweeting History</a>
+      <a class="navbar-brand" href="index.html">
+          <img src="Logo.png" alt="TrendingMap"/>
+      </a>
 
     </div>
     <div id="navbar" class="collapse navbar-collapse">
@@ -31,18 +34,25 @@
         <li><a href="index.html">Home</a></li>
         <li class="active"><a href="demo.html">Demo</a></li>
         <li><a href="documentation.html">Documentation</a></li>
-        <li><a href="http://www.dbs.ifi.lmu.de/cms/Hauptseite" target="_blank">DBS LMU</a></li>
       </ul>
     </div>
   </div>
 </nav>
 
 <!-- Begin page content -->
-<div class="container">
-  <div class="page-header">
-      <h1>Demo</h1>
-  </div>
+<div class="main">
+    <div class="panel col-md-4">
+        <div class="date-picker-wrap">
+            <input id="date">
+            <div id="date-picker"></div>
+            <svg class="cluster-1" width="450" height="100"></svg>
+            <svg class="cluster-2" width="450" height="100"></svg>
+            <svg class="cluster-3" width="450" height="100"></svg>
+        </div>
+    </div>
+    <div id="map" class="col-md-8">
 
+    </div>
 </div>
 
 
@@ -59,5 +69,12 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
 <script src="../../dist/js/bootstrap.min.js"></script>
+
+<!-- Webapp Javascript -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1INXdnxMOy0qiQ5NimksF1dWD3sCKwCs"
+        type="text/javascript"></script>
+<script type="text/javascript" src="http://d3js.org/queue.v1.min.js"></script>
+<script data-main="webapp/js/main" src="webapp/js/require.min.js"></script>
+
 </body>
 </html>

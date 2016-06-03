@@ -21,7 +21,7 @@ class ReDuplicates(threading.Thread):
     def run(self):
         #print("Starting " + self.threadName)
         self.detectDuplicates(self.threadID)
-        print("###### FINISHED" + self.threadName + " / " + str(len(self.collect)) + "######")
+        print("###### FINISHED " + self.threadName + " / Tweets: " + str(len(self.collect)) + " ######")
 
 
 
@@ -44,13 +44,17 @@ class ReDuplicates(threading.Thread):
 
                         if sim > self.threshold:
                             del self.tweets[j]
+                            if isDup == False:
+                                self.collect.append(self.temp_tweets[i])
+
                             isDup = True
                             self.deleted_duplicates += 1
-                            print("D: Thread-" + str(self.threadID) + ": %.5f " % (   (i-start_i) / (end_i-start_i)   ))
-                        else:
-                            break
+                            print("Thread-" + str(self.threadID) + ": %.5f " % (   (i-start_i) / (end_i-start_i)   ))
                     else:
                         break
+
+            else:
+                break
 
             if isDup == False:
                 self.collect.append(self.temp_tweets[i])
@@ -83,9 +87,6 @@ if __name__ == '__main__':
                     splited_tweets.append(tweet.split())
                     temp_tweets.append(line)
 
-
-        #print("Tweets: " + str(len(temp_tweets)))
-        #print("Split: " + str(len(splited_tweets)))
 
         threads = []
         for i in range(num_threads):

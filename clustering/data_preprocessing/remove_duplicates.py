@@ -1,78 +1,65 @@
-import codecs, os,sys, time
-import threading
-import time
+import codecs, os
+from multiprocessing import Process, Manager, Lock
 
-class ReDuplicates(threading.Thread):
-    def __init__(self, input_path, out_path, threadID, threadName, maxThreads, split_tweets, tmp_tweets):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.threadName = threadName
-        self.num_threads = maxThreads
-        self.input_path = input_path
-        self.output_path = out_path
+def run(threadID, num_threads, _split_tweets, _temp_tweets, values):
+    i = threadID
+    temp_tweets = _temp_tweets
+    result = []
+    threshold = 0.8
+    tweets = _split_tweets
+    deleted_duplicates = 0
 
-        #Duplicates
-        self.threshold = 0.8
-        self.tweets = split_tweets
-        self.temp_tweets = tmp_tweets
-        self.collect = []
-        self.deleted_duplicates = 0
+    chunk = len(tweets) / num_threads
+    start_i = int(chunk * i)
+    end_i = int((chunk * (i + 1)) - 1)
+    # print(str(start_i) + " / " + str(end_i))
 
-    def run(self):
-        #print("Starting " + self.threadName)
-        self.detectDuplicates(self.threadID)
-        print("###### FINISHED " + self.threadName + " / Tweets: " + str(len(self.collect)) + " ######")
+    for i in range(start_i, end_i):
+        if i < len(tweets):
+            tweet1 = tweets[i]
+            isDup = False
+            for j in range(i + 1, len(tweets)):
+                if j < len(tweets):
+                    tweet2 = tweets[j]
+                    sim = computeJaccard(set(tweet1), set(tweet2))
+
+                    if sim > threshold:
+                        del tweets[j]
+                        if isDup == False:
+                            result.append(temp_tweets[i])
+
+                        isDup = True
+                        deleted_duplicates += 1
+                        print("P-" + str(threadID) + ": %.1f " % (((i - start_i) / (end_i - start_i) * 100)) + "%")
+                else:
+                    break
+
+        else:
+            break
+
+        if isDup == False:
+            result.append(temp_tweets[i])
+
+    print("###### Id-" + str(i) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(
+                deleted_duplicates) + " ######")
+
+    values[1] = deleted_duplicates
+    values[0] = result
 
 
-
-    #range(0, len(self.tweets) - 1)
-    def detectDuplicates(self, i):
-        chunk = len(self.tweets) / self.num_threads
-        start_i = int(chunk * i)
-        end_i = int((chunk * (i + 1)) - 1)
-
-        #print(str(start_i) + " / " + str(end_i))
-
-        for i in range(start_i, end_i):
-            if i < len(self.tweets):
-                tweet1 = self.tweets[i]
-                isDup = False
-                for j in range(i + 1, len(self.tweets)):
-                    if j < len(self.tweets):
-                        tweet2 = self.tweets[j]
-                        sim = self.computeJaccard(set(tweet1), set(tweet2))
-
-                        if sim > self.threshold:
-                            del self.tweets[j]
-                            if isDup == False:
-                                self.collect.append(self.temp_tweets[i])
-
-                            isDup = True
-                            self.deleted_duplicates += 1
-                            print("Thread-" + str(self.threadID) + ": %.5f " % (   (i-start_i) / (end_i-start_i)   ))
-                    else:
-                        break
-
-            else:
-                break
-
-            if isDup == False:
-                self.collect.append(self.temp_tweets[i])
-
-    def computeJaccard(self, set1, set2):
-        x = len(set1.intersection(set2))
-        y = len(set1.union(set2))
-        return x / float(y)
+def computeJaccard(set1, set2):
+    x = len(set1.intersection(set2))
+    y = len(set1.union(set2))
+    return x / float(y)
 
 if __name__ == '__main__':
+    lock = Lock()
     input_path = "E:/data/"
     output_path = "E:/out/"
-    num_threads = 16
+    num_threads = 32
     files_in_folder = os.listdir(input_path + "/")
     splited_tweets = []
     temp_tweets = []
-
-    join_arr = [None]*num_threads
 
     for file in files_in_folder:
         log = codecs.open(output_path + "log.txt", "a", "utf-8")
@@ -87,19 +74,25 @@ if __name__ == '__main__':
                     splited_tweets.append(tweet.split())
                     temp_tweets.append(line)
 
-
-        threads = []
+        processes = []
+        m = Manager()
+        values = []
         for i in range(num_threads):
-            threads.append(ReDuplicates(input_path, output_path, i, "Thread-" + str(i), num_threads, splited_tweets, temp_tweets))
-            threads[i].start()
+            values.append(
+                m.list([[""], 0])
+           )
 
         for i in range(num_threads):
-            threads[i].join()
+            p = Process(target=run, args=(i, num_threads, splited_tweets, temp_tweets, values[i]))
+            p.start()
+            processes.append(p)
 
-        print("Finished: " + str(len(join_arr)))
-        sum = 0
-        for t in threads:
-            sum += t.deleted_duplicates
-            for line in t.collect:
-                out.write(line)
-        log.write("Deleted-Tweets: " + str(sum) + "\n")
+        for p in processes:
+            p.join()
+
+    sum = 0
+    for val in values:
+        sum += val[1]
+        for line in val[0]:
+            out.write(line)
+    log.write("Deleted-Tweets: " + str(sum) + "\n")

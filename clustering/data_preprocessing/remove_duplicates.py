@@ -1,7 +1,8 @@
-import codecs, os
+import codecs, os, time
 from multiprocessing import Process, Manager, Lock
+from multiprocessing.sharedctypes import Value
 
-def run(threadID, num_threads, _split_tweets, _temp_tweets, values):
+def run(threadID, num_threads, _split_tweets, _temp_tweets, values, p_progress):
     i = threadID
     temp_tweets = _temp_tweets
     result = []
@@ -30,7 +31,7 @@ def run(threadID, num_threads, _split_tweets, _temp_tweets, values):
 
                         isDup = True
                         deleted_duplicates += 1
-                        print("P-" + str(threadID) + ": %.1f " % (((i - start_i) / (end_i - start_i) * 100)) + "%")
+                        #print("P-" + str(threadID) + ": %.0f" % (((i - start_i) / (end_i - start_i) * 100)) + "%")
                 else:
                     break
 
@@ -40,8 +41,8 @@ def run(threadID, num_threads, _split_tweets, _temp_tweets, values):
         if isDup == False:
             result.append(temp_tweets[i])
 
-    print("###### Id-" + str(i) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(
-                deleted_duplicates) + " ######")
+    p_progress.value += 1
+    #print("Id-" + str(threadID) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(deleted_duplicates) + " (" + str(p_progress.value) + "/" + str(num_threads))
 
     values[1] = deleted_duplicates
     values[0] = result
@@ -54,16 +55,20 @@ def computeJaccard(set1, set2):
 
 if __name__ == '__main__':
     lock = Lock()
-    input_path = "E:/data/"
-    output_path = "E:/out/"
+    input_path = "data/"
+    output_path = "out/"
     num_threads = 32
     files_in_folder = os.listdir(input_path + "/")
     splited_tweets = []
     temp_tweets = []
+    t1 = time.time()
 
     for file in files_in_folder:
         log = codecs.open(output_path + "log.txt", "a", "utf-8")
         out = codecs.open(output_path + file, "w", "utf-8")
+
+        p_shared_vals = []
+        p_progress = Value('i', 0)
 
         with codecs.open(input_path + "/" + file, encoding='utf-8') as infile:
             for line in infile:
@@ -76,23 +81,28 @@ if __name__ == '__main__':
 
         processes = []
         m = Manager()
-        values = []
+
         for i in range(num_threads):
-            values.append(
+            p_shared_vals.append(
                 m.list([[""], 0])
            )
 
         for i in range(num_threads):
-            p = Process(target=run, args=(i, num_threads, splited_tweets, temp_tweets, values[i]))
+            p = Process(target=run, args=(i, num_threads, splited_tweets, temp_tweets, p_shared_vals[i], p_progress))
             p.start()
             processes.append(p)
 
         for p in processes:
             p.join()
 
-    sum = 0
-    for val in values:
-        sum += val[1]
-        for line in val[0]:
-            out.write(line)
-    log.write("Deleted-Tweets: " + str(sum) + "\n")
+        t2 = time.time()
+
+        sum = 0
+        for val in p_shared_vals:
+            sum += val[1]
+            for line in val[0]:
+                out.write(line)
+        log.write("Deleted-Tweets: " + str(sum) + "\n")
+        log.write("start: " + str(t1) + "\n")
+        log.write("end: " + str(t2) + "\n")
+        print("file finished: " + file)

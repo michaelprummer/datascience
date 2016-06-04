@@ -13,27 +13,28 @@ def run(threadID, num_threads, _split_tweets, _temp_tweets, values, p_progress):
     chunk = len(tweets) / num_threads
     start_i = int(chunk * i)
     end_i = int((chunk * (i + 1)) - 1)
-    # print(str(start_i) + " / " + str(end_i))
+
+    thresholdLines = 5000
+
+    #print(str(start_i) + " / " + str(end_i))
 
     for i in range(start_i, end_i):
+        linesToGo = thresholdLines
         if i < len(tweets):
-            tweet1 = tweets[i]
             isDup = False
             for j in range(i + 1, len(tweets)):
-                if j < len(tweets):
-                    tweet2 = tweets[j]
-                    sim = computeJaccard(set(tweet1), set(tweet2))
-
-                    if sim > threshold:
+                if j < len(tweets) and linesToGo > 0:
+                    if computeJaccard(set(tweets[i]), set(tweets[j])) > threshold:
                         del tweets[j]
                         if isDup == False:
                             result.append(temp_tweets[i])
 
                         isDup = True
                         deleted_duplicates += 1
-                        #print("P-" + str(threadID) + ": %.0f" % (((i - start_i) / (end_i - start_i) * 100)) + "%")
+                        print("P-" + str(threadID) + ": %.0f" % (((i - start_i) / (end_i - start_i) * 100)) + "%")
                 else:
                     break
+                linesToGo -= 1
 
         else:
             break
@@ -42,26 +43,21 @@ def run(threadID, num_threads, _split_tweets, _temp_tweets, values, p_progress):
             result.append(temp_tweets[i])
 
     p_progress.value += 1
-    #print("Id-" + str(threadID) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(deleted_duplicates) + " (" + str(p_progress.value) + "/" + str(num_threads))
+    print("Id-" + str(threadID) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(deleted_duplicates) + " (" + str(p_progress.value) + "/" + str(num_threads)+")")
 
     values[1] = deleted_duplicates
     values[0] = result
 
 
 def computeJaccard(set1, set2):
-    x = len(set1.intersection(set2))
-    y = len(set1.union(set2))
-    return x / float(y)
+    return len(set1.intersection(set2)) / float(len(set1.union(set2)))
 
 if __name__ == '__main__':
     lock = Lock()
     input_path = "data/"
     output_path = "out/"
-    num_threads = 32
+    num_threads = 12
     files_in_folder = os.listdir(input_path + "/")
-    splited_tweets = []
-    temp_tweets = []
-    t1 = time.time()
 
     for file in files_in_folder:
         log = codecs.open(output_path + "log.txt", "a", "utf-8")
@@ -69,6 +65,11 @@ if __name__ == '__main__':
 
         p_shared_vals = []
         p_progress = Value('i', 0)
+        temp_tweets = []
+        splited_tweets = []
+        t1 = time.time()
+        processes = []
+        m = Manager()
 
         with codecs.open(input_path + "/" + file, encoding='utf-8') as infile:
             for line in infile:
@@ -79,8 +80,6 @@ if __name__ == '__main__':
                     splited_tweets.append(tweet.split())
                     temp_tweets.append(line)
 
-        processes = []
-        m = Manager()
 
         for i in range(num_threads):
             p_shared_vals.append(
@@ -102,7 +101,10 @@ if __name__ == '__main__':
             sum += val[1]
             for line in val[0]:
                 out.write(line)
+
+        end_time = "%.1f" % ((t2-t1)/60)
+
         log.write("Deleted-Tweets: " + str(sum) + "\n")
-        log.write("start: " + str(t1) + "\n")
-        log.write("end: " + str(t2) + "\n")
-        print("file finished: " + file)
+        log.write("time: " + end_time + "\n")
+
+        print("file finished: " + file + " removed: " + str(sum) + " time: " + end_time + "min")

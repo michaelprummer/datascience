@@ -42,3 +42,4 @@ node_modules
 dist
 /.idea
 .idea/workspace.xml
+/.idea

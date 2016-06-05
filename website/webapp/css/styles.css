@@ -63,7 +63,7 @@ input#date {
     left: 0px;
 }
 
-#d3map svg {
+#d3map svg, #dataLayer svg {
     position: absolute;
     top: -4000px;
     left: -4000px;
@@ -90,6 +90,9 @@ input#date {
     stroke-width: 1px;
     stroke: #2c3e50;
 }
+#countries path.active.focus {
+    fill: transparent;
+}
 
 #countries path.hover {
     opacity: 0.15;
@@ -99,4 +102,20 @@ input#date {
 
 #countries path.hover.active {
     opacity: 0.4;
+}
+
+g.locations path {
+    opacity: 0.5;
+}
+
+#example-tweet {
+    display: none;
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    background: rgba(44, 62, 80, 0.9);
+    min-width: 200px;
+    padding: 10px;
+    border-radius: 6px;
+    z-index:1000;
 }

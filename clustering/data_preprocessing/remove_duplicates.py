@@ -59,9 +59,19 @@ if __name__ == '__main__':
     lock = Lock()
     input_path = "data/"
     output_path = "out/"
+    done_path = "done/"
     num_threads = 10
     files_in_folder = os.listdir(input_path + "/")
     deleted_tweets_all = 0
+
+    if not os.path.exists(input_path):
+        os.makedirs(input_path)
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    print("{0} Files found in {1}.".format(len(files_in_folder), input_path))
+
 
     for file in files_in_folder:
         log = codecs.open(output_path + "log.txt", "a", "utf-8")
@@ -93,9 +103,8 @@ if __name__ == '__main__':
            )
 
         #shared_data = m.list(temp_tweets)
-        print("Starting with {0} Tweets.".format(len(temp_tweets)))
+        print("Starting with {0} Tweets ({1}).".format(len(temp_tweets), file))
         for i in range(num_threads):
-            #p = Process(target=run, args=(i, num_threads, splited_tweets, shared_data, p_shared_vals[i], p_progress))
             p = Process(target=run, args=(i, num_threads, splited_tweets, temp_tweets, p_shared_vals[i], p_progress))
             p.start()
             processes.append(p)
@@ -119,3 +128,4 @@ if __name__ == '__main__':
         deleted_tweets_all += sum
 
     log.write("Final: {0}\n".format(deleted_tweets_all))
+    print("Final: {0}\n".format(deleted_tweets_all))

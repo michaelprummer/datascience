@@ -2,36 +2,33 @@ import codecs, os, time
 from multiprocessing import Process, Manager, Lock
 from multiprocessing.sharedctypes import Value
 
-def run(threadID, num_threads, _split_tweets, _temp_tweets, values, p_progress):
-    i = threadID
-    temp_tweets = _temp_tweets
+def run(threadID, num_threads, splited, tweets, values, p_progress, start_i, end_i):
     result = []
     threshold = 0.8
-    tweets = _split_tweets
     deleted_duplicates = 0
+    thresholdLines = 1200
 
-    chunk = len(tweets) / num_threads
-    start_i = int(chunk * i)
-    end_i = int((chunk * (i + 1)) - 1)
-
-    thresholdLines = 5000
-
-    #print(str(start_i) + " / " + str(end_i))
-
-    for i in range(start_i, end_i):
+    for k in range(0, len(tweets)):
         linesToGo = thresholdLines
-        if i < len(tweets):
-            isDup = False
-            for j in range(i + 1, len(tweets)):
-                if j < len(tweets) and linesToGo > 0:
-                    if computeJaccard(set(tweets[i]), set(tweets[j])) > threshold:
-                        del tweets[j]
-                        if isDup == False:
-                            result.append(temp_tweets[i])
 
-                        isDup = True
+        if k < len(splited):
+            isDup = False
+            for j in range(k + 1, len(splited)):
+                if j < len(splited) and linesToGo > 0:
+                    sim = computeJaccard(set(splited[k]), set(splited[j]))
+
+                    if sim > threshold:
+                        if isDup == False:
+                            result.append(tweets[k])
+                            isDup = True
+                            #print("1: " + temp_tweets[i])
+                            #print("2: " + temp_tweets[j])
+
+                        del splited[j]
+                        del tweets[j]
                         deleted_duplicates += 1
-                        print("P-" + str(threadID) + ": %.0f" % (((i - start_i) / (end_i - start_i) * 100)) + "%")
+                        break
+                        print("P-{:d}: {:.0%}".format(threadID, (k - start_i) / float(end_i - start_i)))
                 else:
                     break
                 linesToGo -= 1
@@ -39,11 +36,11 @@ def run(threadID, num_threads, _split_tweets, _temp_tweets, values, p_progress):
         else:
             break
 
-        if isDup == False:
-            result.append(temp_tweets[i])
+        if not isDup:
+            result.append(tweets[k])
 
     p_progress.value += 1
-    print("Id-" + str(threadID) + ", Tweets: " + str(len(result)) + " Duplicates: " + str(deleted_duplicates) + " (" + str(p_progress.value) + "/" + str(num_threads)+")")
+    print("PID-{0}, Tweets: {1} Duplicates: {2} ({3}/{4})".format(threadID, len(result), deleted_duplicates, p_progress.value, num_threads))
 
     values[1] = deleted_duplicates
     values[0] = result
@@ -56,8 +53,19 @@ if __name__ == '__main__':
     lock = Lock()
     input_path = "data/"
     output_path = "out/"
-    num_threads = 12
+    done_path = "done/"
+    num_threads = 10
     files_in_folder = os.listdir(input_path + "/")
+    deleted_tweets_all = 0
+
+    if not os.path.exists(input_path):
+        os.makedirs(input_path)
+
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    print("{0} Files found in {1}.".format(len(files_in_folder), input_path))
+
 
     for file in files_in_folder:
         log = codecs.open(output_path + "log.txt", "a", "utf-8")
@@ -70,6 +78,8 @@ if __name__ == '__main__':
         t1 = time.time()
         processes = []
         m = Manager()
+
+
 
         with codecs.open(input_path + "/" + file, encoding='utf-8') as infile:
             for line in infile:
@@ -86,8 +96,16 @@ if __name__ == '__main__':
                 m.list([[""], 0])
            )
 
+
+
+        print("Starting with {0} Tweets ({1}).".format(len(temp_tweets), file))
         for i in range(num_threads):
-            p = Process(target=run, args=(i, num_threads, splited_tweets, temp_tweets, p_shared_vals[i], p_progress))
+            chunk = len(splited_tweets) / num_threads
+            start_i = int(chunk * i)
+            end_i = int((chunk * (i + 1)) - 1)
+            tweets = temp_tweets[start_i:end_i]
+            splited = splited_tweets[start_i:end_i]
+            p = Process(target=run, args=(i, num_threads, splited, tweets, p_shared_vals[i], p_progress, start_i, end_i))
             p.start()
             processes.append(p)
 
@@ -104,7 +122,10 @@ if __name__ == '__main__':
 
         end_time = "%.1f" % ((t2-t1)/60)
 
-        log.write("Deleted-Tweets: " + str(sum) + "\n")
-        log.write("time: " + end_time + "\n")
+        log.write("Deleted-Tweets: {0}\n".format(sum))
+        log.write("time: {0}\n".format(end_time))
+        print("file finished: {0}, removed: {1}, time: {2}min".format(file, sum, end_time))
+        deleted_tweets_all += sum
 
-        print("file finished: " + file + " removed: " + str(sum) + " time: " + end_time + "min")
+    log.write("Final: {0}\n".format(deleted_tweets_all))
+    print("Final: {0}\n".format(deleted_tweets_all))

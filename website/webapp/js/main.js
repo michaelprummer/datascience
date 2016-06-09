@@ -22,9 +22,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
         var selectedTopic;
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
-        var yellow = '#e9d460';
+        var lilac = '#8e44ad';
         var red = '#F62459';
-        var blue = '#1F3A93';
+        var orange = '#e67e22';
 
         // create date picker
         var picker = new Pikaday({
@@ -95,8 +95,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
 
             redraw = function() {
 
-                var markerOverlay = this;
-                overlayProjection = markerOverlay.getProjection();
+                overlayProjection = this.getProjection();
                 var worldwidth = overlayProjection.getWorldWidth();
                 var prevX = null;
 
@@ -204,7 +203,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
             }
 
             function zoom(zoom) {
-                map.setZoom(zoom);
+                if (map.getZoom() == zoom) {
+                    overlay.draw();
+                } else {
+                    map.setZoom(zoom);
+                }
             }
 
             function setCenter(state_name) {
@@ -227,9 +230,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
                 var trend2 = ["cleveland", "football", "brown", "draft", "dallas"];
                 var trend3 = ["mexican", "celebrity", "cinco", "mayo"];
 
-                newWordCloud(trend1, yellow, cluster1);
+                newWordCloud(trend1, lilac, cluster1);
                 newWordCloud(trend2, red, cluster2);
-                newWordCloud(trend3, blue, cluster3);
+                newWordCloud(trend3, orange, cluster3);
 
             }
 
@@ -245,7 +248,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
 
             function draw(words, id) {
                 d3.select(id)
-                    //.selectAll("g").remove()
+                    .selectAll("g").remove();
+                d3.select(id)
                     .append("g")
                     .attr("transform", "translate(225,50)")
                     .selectAll("text")
@@ -267,21 +271,18 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
                 draw(words, '.cluster-1');
                 $('.cluster-1').click(function() {
                     showLocations(1);
-                    redraw();
                 });
             }
             function cluster2(words) {
                 draw(words, '.cluster-2');
                 $('.cluster-2').click(function() {
                     showLocations(2);
-                    redraw();
                 });
             }
             function cluster3(words) {
                 draw(words, '.cluster-3');
                 $('.cluster-3').click(function() {
                     showLocations(3);
-                    redraw();
                 });
             }
 
@@ -296,56 +297,58 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
                 switch(cluster) {
                     case 2:
                         color = red;
+
+                        //load locations of topic
+                        locationGeoJson.features = [
+                            {
+                                type: 'Feature',
+                                geometry: {type: 'Point', coordinates: [-77.113168835, 38.8821828738]},
+                                properties: {text: 'some great bowl games played today... and the Playoffs haven t even started!', fill: color}
+                            },
+                            {
+                                type: 'Feature',
+                                geometry: {type: 'Point', coordinates: [-78.113168835, 35.8821828738]},
+                                properties: {text: 'a', fill: color}
+                            },
+                            {
+                                type: 'Feature',
+                                geometry: {type: 'Point', coordinates: [-76.113168835, 37.8821828738]},
+                                properties: {text: 'b', fill: color}
+                            }];
                         break;
                     case 3:
-                        color = blue;
+                        color = orange;
+
+                        //load locations of topic
+                        locationGeoJson.features = [{
+                            type: 'Feature',
+                            geometry: {type: 'Point', coordinates: [-87.650, 41.850]},
+                            properties: {text: 'Let me say cinco de mayo is Mexico independence not Hispanics in a group. And a taco bowl isn t a Mexican dish', fill: color}
+                        }];
                         break;
                     default:
-                        color = yellow;
+                        color = lilac;
+
+                        //load locations of topic
+                        locationGeoJson.features = [{
+                                type: 'Feature',
+                                geometry: {type: 'Point', coordinates: [-90.650, 42.850]},
+                                properties: {text: 'Mobiles : #4092 ORIGINAL Monster Beats by Dr Dre iBeats In-Ear Headphones for Apple iPhone… ', fill: color}
+                            },
+                            {
+                                type: 'Feature',
+                                geometry: {type: 'Point', coordinates: [-89.650, 43.850]},
+                                properties: {text: 'Text', fill: color}
+                            }];
                 }
 
-                //load locations of topic
-                locationGeoJson.features = [{
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [-87.650, 41.850]},
-                    properties: {text: 'A', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [-149.900, 61.218]},
-                    properties: {text: 'B', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [-99.127, 19.427]},
-                    properties: {text: 'C', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [-0.126, 51.500]},
-                    properties: {text: 'D', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [28.045, -26.201]},
-                    properties: {text: 'E', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [15.322, -4.325]},
-                    properties: {text: 'F', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [151.207, -33.867]},
-                    properties: {text: 'G', fill: color}
-                }, {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [0, 0]},
-                    properties: {text: 'H', fill: color}
-                }];
+
+
 
                 zoom(4);
 
-            }
 
-            $(window).bind("resize", function() {
-                redraw();
-            });
+            }
 
         }
 

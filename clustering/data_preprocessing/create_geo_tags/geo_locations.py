@@ -101,7 +101,7 @@ def showDuration(duration):
 
 if __name__ == "__main__":
     data_path = "C:/data/"
-    output_path = "C:/data/country_tagged/"
+    output_path = "C:/data_country_tagged/"
     
     limit = None
     special_files = None

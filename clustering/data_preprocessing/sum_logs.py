@@ -15,7 +15,7 @@ if __name__ == '__main__':
     files_in_folder = os.listdir(input_path + "/")
     sums_tweets = []
     sums_time = []
-    out = codecs.open("result", "w", "utf-8")
+    out = codecs.open("result.log", "w", "utf-8")
 
     for file in files_in_folder:
 
@@ -28,10 +28,11 @@ if __name__ == '__main__':
                 else:
                     time_values = line.split("time: ")
                     if len(time_values) > 1:
-                        time_values.append(int(time_values[1].rstrip('\n')))
+                        tmp_time = time_values[1].rstrip('\n')
+                        sums_time.append(float(time_values[1].rstrip('\r')))
 
-    final_time = sum(time_values)
+    final_time = sum(sums_time)
     final_tweets = sum(sums_tweets)
-    final_str = "Tweets removed: {0} time: {1}h".format(final_tweets, final_time/60)
+    final_str = "Tweets removed: {:d} time: {:10.2f}h".format(final_tweets, final_time/60)
     out.write(final_str)
     print(final_str)

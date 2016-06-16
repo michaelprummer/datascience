@@ -17,6 +17,10 @@
     height: 100%;
     margin: 0;
 }
+.map-wrapper {
+    padding: 0;
+    height: 100%;
+}
 
 
 /*Styling of date picker */
@@ -26,7 +30,7 @@ input#date {
 .pika-single {
     color: #2c3e50;
     width: 258px;
-    margin: 0 auto 50px;
+    margin: 0 auto 35px;
 }
 .is-today .pika-button {
     color: #18bc9c;
@@ -44,9 +48,33 @@ input#date {
     text-decoration: none;
 }
 
-.cluster-1, .cluster-2, .cluster-3 {
+.topics {
     cursor: pointer;
+    opacity: 0.8;
+    display: block;
+    margin-bottom: 10px;
+    padding: 0 15px;
 }
+.topics:after {
+    content: '';
+    display: table;
+    clear: left;
+}
+.topics span {
+    margin-right: 10px;
+    float: left;
+}
+.cluster-1 {
+    color: #8e44ad;
+}
+.cluster-2 {
+    color: #F62459;
+}
+
+.cluster-3 {
+    color: #e67e22;
+}
+
 #map {
     margin: 0;
     padding: 0;

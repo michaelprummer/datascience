@@ -1,12 +1,13 @@
 requirejs.config({
     //By default load any module IDs from js/lib
     baseUrl: 'webapp/js/lib'
+
 });
 
 
 // Start the main app logic.
-requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
-    function(d3, topojson, queue, moment, Pikaday, layoutCloud ){
+requirejs(["d3","topojson", "queue", "moment", "pikaday"],
+    function(d3, topojson, queue, moment, Pikaday ){
 
         var width = $('.main').width(),
             height = $('.main').height();
@@ -20,6 +21,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
 
         var selectedCountry;
         var selectedTopic;
+        var selectedColor;
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
         var lilac = '#8e44ad';
@@ -66,6 +68,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
 
         function ready(error, data) {
             overlay.setMap(map);
+            initTopics();
 
             var countries = topojson.feature(data, data.objects.countries).features;
 
@@ -153,23 +156,27 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
                     .selectAll("path")
                     .data(locationGeoJson.features)
                     .enter().append("path")
-                    .attr("d", path.pointRadius(5))
+                    .attr("d", path.pointRadius(1 * map.getZoom()))
                     .style("fill", function(d) { return d.properties.fill; })
                     .on("mouseover", function (d) {
-                        coordinates = d3.mouse(this);
-                        var x = coordinates[0] - 4000;
-                        var y = coordinates[1] - 4000;
+
+                        d3.select(this).style("fill", "#2c3e50");
+
+                        pos = d3.mouse(this);
+                        var x = pos[0] - 4000;
+                        var y = pos[1] - 4000;
                         $("#example-tweet").fadeOut(100, function () {
                             // Popup content
                             $("#example-tweet p").html(d.properties.text);
                             $("#example-tweet").fadeIn(100);
                         });
                         $("#example-tweet").css({
-                            "right": x,
+                            "left": x + 20,
                             "top": y
                         });
                     }).
                     on("mouseout", function () {
+                        d3.select(this).style("fill", function(d) { return d.properties.fill; });
                         $("#example-tweet").fadeOut(50);
                     });
             }
@@ -220,134 +227,73 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday", "d3.layout.cloud"],
                 });
             }
 
+            function initTopics() {
+                $('.topics').click(function() {
+                    if ($(this).hasClass('cluster-1')) { selectedColor = lilac; }
+                    if ($(this).hasClass('cluster-2')) { selectedColor = red; }
+                    if ($(this).hasClass('cluster-3')) { selectedColor = orange; }
+
+                    showLocations();
+                });
+            }
+
             // called after country was selected -- or after new date is selected
             function showTrends(state_name, date){
 
                 //TODO
                 //getTrends(state_name, date);
 
-                var trend1 = ["dre", "beat", "billionair", "apple"];
+                var trend1 = ["dre", "beat", "billionair", "apple", "dre", "beat", "billionairbeat", "apple"];
                 var trend2 = ["cleveland", "football", "brown", "draft", "dallas"];
                 var trend3 = ["mexican", "celebrity", "cinco", "mayo"];
 
-                newWordCloud(trend1, lilac, cluster1);
-                newWordCloud(trend2, red, cluster2);
-                newWordCloud(trend3, orange, cluster3);
+                newWordCloud(trend1, ".cluster-1");
+                newWordCloud(trend2, ".cluster-2");
+                newWordCloud(trend3, ".cluster-3");
 
             }
 
-            function newWordCloud(words, color, fn) {
-                layoutCloud().size([450, 100])
-                    .words(words.map(function(d) {
-                        return {text: d, size: 14 + Math.random() * 30, fill: color}
-                    }))
-                    .fontSize(function(d) { return d.size; })
-                    .on("end", fn)
-                    .start();
-            }
-
-            function draw(words, id) {
+            function newWordCloud(words, id) {
                 d3.select(id)
-                    .selectAll("g").remove();
+                    .selectAll("span").remove();
                 d3.select(id)
-                    .append("g")
-                    .attr("transform", "translate(225,50)")
-                    .selectAll("text")
+                    .selectAll("span")
                     .data(words)
-                    .enter().append("text")
-                    .style("font-size", function(d) { return d.size + "px"; })
-                    .style("font-family", "Helvetica Neue")
-                    .style("fill", function(d, i) { return d.fill; })
-                    .style("opacity", 0.7)
-                    .attr("text-anchor", "middle")
-                    .attr("transform", function(d) {
-                        return "translate(" + [d.x, d.y] + ")rotate(" + 0 + ")";
+                    .enter().append("span")
+                    .attr("style", function() {
+                        size = 12 + Math.random() * 30;
+                        opacity = 0.8 + Math.random() * 0.2;
+                        return 'font-size: '+ size + 'px; opacity: '+ opacity;
                     })
-                    .text(function(d) { return d.text; });
+                    .text(function(d) { return d; });
             }
 
 
-            function cluster1(words) {
-                draw(words, '.cluster-1');
-                $('.cluster-1').click(function() {
-                    showLocations(1);
-                });
-            }
-            function cluster2(words) {
-                draw(words, '.cluster-2');
-                $('.cluster-2').click(function() {
-                    showLocations(2);
-                });
-            }
-            function cluster3(words) {
-                draw(words, '.cluster-3');
-                $('.cluster-3').click(function() {
-                    showLocations(3);
-                });
-            }
-
-
-            function showLocations(cluster) {
+            function showLocations() {
 
                 svg.select('#countries')
                     .selectAll('path')
                     .classed('focus',true);
 
-
-                switch(cluster) {
-                    case 2:
-                        color = red;
-
-                        //load locations of topic
-                        locationGeoJson.features = [
-                            {
-                                type: 'Feature',
-                                geometry: {type: 'Point', coordinates: [-77.113168835, 38.8821828738]},
-                                properties: {text: 'some great bowl games played today... and the Playoffs haven t even started!', fill: color}
-                            },
-                            {
-                                type: 'Feature',
-                                geometry: {type: 'Point', coordinates: [-78.113168835, 35.8821828738]},
-                                properties: {text: 'a', fill: color}
-                            },
-                            {
-                                type: 'Feature',
-                                geometry: {type: 'Point', coordinates: [-76.113168835, 37.8821828738]},
-                                properties: {text: 'b', fill: color}
-                            }];
-                        break;
-                    case 3:
-                        color = orange;
-
-                        //load locations of topic
-                        locationGeoJson.features = [{
-                            type: 'Feature',
-                            geometry: {type: 'Point', coordinates: [-87.650, 41.850]},
-                            properties: {text: 'Let me say cinco de mayo is Mexico independence not Hispanics in a group. And a taco bowl isn t a Mexican dish', fill: color}
-                        }];
-                        break;
-                    default:
-                        color = lilac;
-
-                        //load locations of topic
-                        locationGeoJson.features = [{
-                                type: 'Feature',
-                                geometry: {type: 'Point', coordinates: [-90.650, 42.850]},
-                                properties: {text: 'Mobiles : #4092 ORIGINAL Monster Beats by Dr Dre iBeats In-Ear Headphones for Apple iPhone… ', fill: color}
-                            },
-                            {
-                                type: 'Feature',
-                                geometry: {type: 'Point', coordinates: [-89.650, 43.850]},
-                                properties: {text: 'Text', fill: color}
-                            }];
-                }
-
-
-
+                getLocations();
 
                 zoom(4);
 
 
+            }
+
+            function getLocations() {
+                //load locations of topic
+                locationGeoJson.features = [{
+                    type: 'Feature',
+                    geometry: {type: 'Point', coordinates: [13.4351858, 52.5299092]},
+                    properties: {text: 'Mobiles : #4092 ORIGINAL Monster Beats by Dr Dre iBeats In-Ear Headphones for Apple iPhone… ', fill: selectedColor}
+                },
+                {
+                    type: 'Feature',
+                    geometry: {type: 'Point', coordinates: [11.581981, 48.135125]},
+                    properties: {text: 'Text', fill: selectedColor}
+                }];
             }
 
         }

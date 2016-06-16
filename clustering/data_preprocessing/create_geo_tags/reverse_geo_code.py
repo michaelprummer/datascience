@@ -48,13 +48,13 @@ class GeoPreprocessing():
         c = 0
 
         for i in range(len(tweets)):
-            timeFormat = '%Y-%m-%d %H:%M:%S'
-            ts = time.strftime(timeFormat, time.strptime(tweets[i][2], '%a %b %d %H:%M:%S +0000 %Y'))
-
             try:
                 lat, lng = tuple(tweets[i][1].split(","))
                 result = reverse_geocode.search([(lat, lng)])[0]
 
+                # Timestamp
+                timeFormat = '%Y-%m-%d %H:%M:%S'
+                ts = time.strftime(timeFormat, time.strptime(tweets[i][2], '%a %b %d %H:%M:%S +0000 %Y'))
                 timestamp = str(time.mktime(datetime.strptime(ts, timeFormat).timetuple()))[:-2]
 
                 if result['country'] != "":

@@ -24,63 +24,57 @@ class GeoPreprocessing():
             self.getCountry(file)
             print("Duration: %.1f" % ((time.time() - t1) / 60))
 
-    def loadIDs(self, file):
+    def loadData(self, file):
         counter = 0
-        ids = numpy.loadtxt(self.input_path + file, dtype='str', delimiter="\t", usecols=[2], comments=None)
+        tweet = numpy.loadtxt(self.input_path + file, dtype='str', delimiter="\t", usecols=[2, 4, 0, 3], comments=None)
 
-        for i in range(len(ids)):
+        for i in range(len(tweet)):
             counter += 1
+            tweet[i][1] = tweet[i][1].strip("[]")
+
             if self.limit and counter >= self.limit:
-                return ids[:self.limit]
-        return ids
+                return tweet[:self.limit]
+        return tweet
 
     def loadGeoCoordinates(self, file):
         counter = 0
         geo_data = numpy.loadtxt(self.input_path + file, dtype='str', delimiter="\t", usecols=[4], comments=None)
 
-        for i in range(len(geo_data)):
-            counter += 1
-            geo_data[i] = geo_data[i].strip("[]")
-            if self.limit and counter >= self.limit:
-                return geo_data[:self.limit]
+
         return geo_data
 
     def getCountry(self, filename):
         print("Start: " + filename)
 
-        ids = self.loadIDs(filename)
-        geo_data = self.loadGeoCoordinates(filename)
+        tweets = self.loadData(filename)
+        #geo_data = self.loadGeoCoordinates(filename)
 
         print("Getting country for each tweet in file " + filename)
-        if len(geo_data) != len(ids):
-            print("Exit!")
-            exit()
 
         out = open(self.output_path + filename, "w")
         data = []
         c = 0
 
-        for i in range(len(geo_data)):
+        for i in range(len(tweets)):
             try:
-                lat, lng = tuple(geo_data[i].split(","))
+                lat, lng = tuple(tweets[i][1].split(","))
                 result = reverse_geocode.search([(lat, lng)])[0]
 
                 if result['country'] != "":
-                    data_str = "\t".join([ids[i], geo_data[i], result['city'], result['country_code'], result['country'], "\n"])
+                    data_str = "\t".join([tweets[i][0], tweets[i][1], result['city'], result['country_code'], result['country'], "\n"], tweets[i][2], tweets[i][3])
                     data.append(data_str)
 
                 elif result['country_code'] == "XK":
-                    data_str = "\t".join([ids[i], geo_data[i], result['city'], result['country_code'], "Kosovo", "\n"])
+                    data_str = "\t".join([tweets[i][0], tweets[i][1], result['city'], result['country_code'], result['country'], "\n"], tweets[i][2], tweets[i][3])
                     data.append(data_str)
 
                 else:
-                    self.not_usable_files.write(str(ids[i]) + "\n")
+                    self.not_usable_files.write(str(tweets[i][0]) + "\n")
                     print(result)
-
             except:
                 c+=1
-                print(sys.exc_info(), "Lola: ", geo_data[i])
-                self.not_usable_files.write(str(ids[i]) + "\n")
+                print(sys.exc_info(), "Lola: ", tweets[i][2])
+                self.not_usable_files.write(filename + ": " +  str(tweets[i]) + "\n")
 
         print("Errors in file:", c)
 

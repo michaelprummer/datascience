@@ -13,6 +13,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             height = $('.main').height();
 
         var div = d3.select('#map');
+        var tooltip = $("#example-tweet");
         var svg;
         var overlay = new google.maps.OverlayView();
         var path;
@@ -162,22 +163,19 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
                         d3.select(this).style("fill", "#2c3e50");
 
-                        pos = d3.mouse(this);
-                        var x = pos[0] - 4000;
-                        var y = pos[1] - 4000;
-                        $("#example-tweet").fadeOut(100, function () {
+                        tooltip.fadeOut(100, function () {
                             // Popup content
-                            $("#example-tweet p").html(d.properties.text);
+                            tooltip.select('p').html(d.properties.text);
                             $("#example-tweet").fadeIn(100);
                         });
-                        $("#example-tweet").css({
-                            "left": x + 20,
-                            "top": y
+                        tooltip.css({
+                            "left": d3.event.pageX + 20,
+                            "top": d3.event.pageY
                         });
                     }).
                     on("mouseout", function () {
                         d3.select(this).style("fill", function(d) { return d.properties.fill; });
-                        $("#example-tweet").fadeOut(50);
+                        tooltip.fadeOut(50);
                     });
             }
 
@@ -222,6 +220,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     if (status == google.maps.GeocoderStatus.OK) {
 
                         map.setCenter(results[0].geometry.location);
+                        overlay.draw();
                         zoom(4);
                     }
                 });
@@ -261,7 +260,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .data(words)
                     .enter().append("span")
                     .attr("style", function() {
-                        size = 12 + Math.random() * 30;
+                        size = 14 + Math.random() * 20;
                         opacity = 0.8 + Math.random() * 0.2;
                         return 'font-size: '+ size + 'px; opacity: '+ opacity;
                     })
@@ -278,7 +277,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 getLocations();
 
                 zoom(4);
-
 
             }
 

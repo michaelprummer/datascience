@@ -52,7 +52,7 @@ input#date {
     cursor: pointer;
     opacity: 0.8;
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
     padding: 0 15px;
 }
 .topics:after {
@@ -132,8 +132,12 @@ input#date {
     opacity: 0.4;
 }
 
-g.locations path {
+.locations path {
     opacity: 0.8;
+}
+
+.locations path:hover {
+    cursor: pointer;
 }
 
 #example-tweet {

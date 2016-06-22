@@ -23,6 +23,8 @@ class Preprocessing():
         self.stemmer = snowball.EnglishStemmer()
         #self.stemmer = WordNetLemmatizer() # called self.stemmer.lemmatize(string)
         print("Loading corpus")
+        self.country_map = set()
+        self.all_countries = set()
         
     def read_as_object(self, path, special_files, limit=None):
         # we have 201 384 592 tweets
@@ -53,37 +55,38 @@ class Preprocessing():
             print()
         
         return tweets
-    
+            
     def read_with_numpy(self, path, special_files, limit=None):
         counter = 0
-        tweets = list()
         if special_files:
             files = special_files
         else:
             files = os.listdir(path)
             
         for file in files:
-            print("Loading file " + file, end=": ")
+            print("Loading tweets from " + file, end=" - ")
             t0 = time()
-            data = numpy.loadtxt(path + file, dtype='str', delimiter="\t", usecols = [3])
+            tweets = numpy.loadtxt(path + file, dtype='str', delimiter="\t", usecols = [6],comments=None)
+            
             print("done in %0.3fs" % (time() - t0))
             
-            print("Preprocessing file", end=" - ")
+            print("Preprocessing tweets", end=" - ")
             t0 = time()
-            for i in range(len(data)):
+            for i in range(len(tweets)):
                 counter+= 1
-                tweet = self.preprocess_tweet(data[i])
-                data[i] = tweet
-                
+                tweet = self.preprocess_tweet(tweets[i])
+                tweets[i] = tweet
+                #print(tweet)
                 if limit and counter >= limit:
                     print("done in %0.3fs" % (time() - t0))
                     print()
-                    return data[:limit]
+                    return tweets[:limit]
                 
             print("done in %0.3fs" % (time() - t0))
             print()
-            
-        return data
+        
+        
+        return tweets
     
     def read_with_pandas(self, path, special_files, limit=None):
         counter = 0
@@ -111,17 +114,7 @@ class Preprocessing():
         
         """
 
-        - remove tagged persons, pronouns
-        - content-based: co-occurrence clusters
-        - Sequences of repeated symbols or punctuation signs were reduced to one instance or a sequence
-        to indicate the repetition.
-        - Numbers or dates were reduced to a capital letter indicating their appearance.
-        - Some symbols were forced to be preceded by a white space in order to facilitate the posterior
-        splitting into words.
-        - Sequences of several white spaces were reduced to one white space and all white spaces
-        were converted to underscores.
-        - punctuation and stopwords removal
-        - what happens to don't?
+        - remove pronouns and stopwords (100 most frequent words)
         """
         tweet = tweet.decode(encoding="utf-8")
         
@@ -158,7 +151,7 @@ class Preprocessing():
                 tweet[i] = ""
             
             else:
-                tweet[i] = re.sub("[^0-9A-Za-z,.?!%:/]", "", token)           
+                tweet[i] = re.sub("[^0-9A-Za-z,.?!%:/']", "", token)           
                 
                 
         preprocessed_tweet = ""

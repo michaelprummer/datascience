@@ -50,18 +50,19 @@ class Frequencies():
                 reverse=True)
      
         # Print the 100 most frequent tokens.
-        print("Most frequent tokens (top 100):")
-        index = 1
-        for pair in frequency_list[:100]:
-            print(str(index).ljust(2), pair[0].ljust(20), str(pair[1]))
-            index += 1
-     
-        # Print the 100 least frequent tokens.
-#         print("\nLeast common tokens (top 100):")
+#         print("Most frequent tokens (top 100):")
 #         index = 1
-#         for pair in frequency_list[-100:]:
+#         for pair in frequency_list[:100]:
 #             print(str(index).ljust(2), pair[0].ljust(20), str(pair[1]))
 #             index += 1
+     
+        # Print the 100 least frequent tokens.
+        print("\nLeast common tokens (top 100):")
+        index = 1
+        for pair in frequency_list[-10000:]:
+            if pair[1] < 11:
+                print(str(index).ljust(2), pair[0].ljust(20), str(pair[1]))
+                index += 1
         
         print("done in %0.3fs" % (time()-t0))
         

@@ -28,6 +28,17 @@ if(isset($_POST['action'])) {
 
 }
 
+if(isset($_GET['action'])) {
+
+    $action = $_GET['action'];
+
+    switch($action) {
+        case 'getTweets':
+            get_tweets($_GET['location']);
+            break;
+    }
+}
+
 function check_db(){
     global $db;
 
@@ -52,6 +63,7 @@ function database_clear() {
 }
 
 function database_setup() {
+
     global $db;
 
     $table = "CREATE TABLE Tweets (
@@ -70,6 +82,7 @@ function database_setup() {
 }
 
 function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
+
     global $db;
     //$db = check_db();
     $timestamp = strtotime($time);
@@ -77,7 +90,40 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
     $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`id`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
 
     $db -> query_bool($insert);
-    //return $reult;
+}
+
+function get_tweets($location){
+
+    global $db;
+
+    $query = "SELECT latitude, longitude, twitter_id FROM tweets WHERE location='".$location."'";
+
+    $result = $db -> query($query);
+
+    if (sizeof($result) > 0) {
+        $arr = [];
+        $inc = 0;
+
+        foreach ($result as $row) {
+            $jsonArrayObject = (array(
+            'type' => 'Feature',
+            'geometry'=>array(
+                'type'=>'Point',
+                'coordinates' => array($row->longitude, $row->latitude)
+                ),
+            'properties'=> array(
+                'text'=> $row->twitter_id
+                )
+            ));
+            $arr[$inc] = $jsonArrayObject;
+            $inc++;
+        }
+        $json_array = json_encode($arr);
+        echo $json_array;
+    }
+    else{
+        echo "0 results";
+    }
 }
 
 ?>

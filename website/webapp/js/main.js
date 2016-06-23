@@ -13,7 +13,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             height = $('.main').height();
 
         var div = d3.select('#map');
-        var tooltip = $("#example-tweet");
         var svg;
         var overlay = new google.maps.OverlayView();
         var path;
@@ -23,7 +22,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var selectedCountry;
         var selectedTopic;
         var selectedColor;
-        var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
         var lilac = '#8e44ad';
         var red = '#F62459';
@@ -62,6 +60,50 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         // Create the Google Map using our element and options defined above
         var map = new google.maps.Map(div.node(), mapOptions);
 
+        var infowindow = new google.maps.InfoWindow({
+            content: ''
+        });
+
+        var icon = {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillOpacity: 0.8,
+            fillColor: selectedColor,
+            strokeWeight: 0,
+            scale: 5 //pixels
+        };
+
+        styles = [
+            [{
+                url: 'webapp/images/circle.svg',
+                height: 40,
+                width: 40,
+                anchor: [0, 0],
+                textColor: 'rgba(142,68,173,0.8)',
+                textSize: 12,
+                iconAnchor: [0, 0]
+            }],
+            [{
+                url: 'webapp/images/circle-r.svg',
+                height: 40,
+                width: 40,
+                anchor: [0, 0],
+                textColor: 'rgba(246,36,89,0.8)',
+                textSize: 12,
+                iconAnchor: [0, 0]
+            }],
+            [{
+                url: 'webapp/images/circle-o.svg',
+                height: 40,
+                width: 40,
+                anchor: [0, 0],
+                textColor: 'rgba(230,126,34,0.8)',
+                textSize: 12,
+                iconAnchor: [0, 0]
+            }]
+        ];
+        var mcOptions;
+        var mc = new MarkerClusterer(map);
+
         // Load the  json data
         queue()
             .defer(d3.json, "webapp/topo/countries.topo.json")
@@ -93,7 +135,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 overlay.draw = redraw;
                 google.maps.event.addListener(map, 'center_changed', redraw);
                 google.maps.event.addListener(map, 'bounds_changed', redraw);
-                google.maps.event.addListener(map, 'zoom_changed', redraw);
 
             };
 
@@ -125,18 +166,27 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 path = d3.geo.path().projection(googleMapProjection);
 
                 redrawCountries(path);
-
-                redrawLocations(path);
             }
 
             function redrawCountries(path) {
+                var isDragging = false;
 
                 //updating countries
                 svg.select('#countries')
                     .selectAll('path')
                     //.filter(function(d) { return d.id == 'RUS' })
                     .attr('d', path)
-                    .on("click", stateSelected)
+                    .on("click", function (d) {
+                        if (!isDragging) {
+                            stateSelected(d);
+                        }
+                    })
+                    .on("mousedown", function () {
+                        isDragging = false;
+                    })
+                    .on("mousemove", function() {
+                        isDragging = true;
+                    })
                     .on("mouseover", function(){
                         d3.select(this).classed("hover", !d3.select(this).classed("hover"));
                         map.setOptions({ draggableCursor: 'pointer' });
@@ -144,38 +194,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .on("mouseout", function(){
                         d3.select(this).classed("hover", !d3.select(this).classed("hover"));
                         map.setOptions({ draggableCursor: 'initial' });
-                    });
-            }
-
-            function redrawLocations(path) {
-                // updating locations (circle diagram)
-                svg.select('g.locations')
-                    .selectAll("path")
-                    .remove();
-
-                svg.select('g.locations')
-                    .selectAll("path")
-                    .data(locationGeoJson.features)
-                    .enter().append("path")
-                    .attr("d", path.pointRadius(1 * map.getZoom()))
-                    .style("fill", function(d) { return d.properties.fill; })
-                    .on("mouseover", function (d) {
-
-                        d3.select(this).style("fill", "#2c3e50");
-
-                        tooltip.fadeOut(100, function () {
-                            // Popup content
-                            tooltip.select('p').html(d.properties.text);
-                            $("#example-tweet").fadeIn(100);
-                        });
-                        tooltip.css({
-                            "left": d3.event.pageX + 20,
-                            "top": d3.event.pageY
-                        });
-                    }).
-                    on("mouseout", function () {
-                        d3.select(this).style("fill", function(d) { return d.properties.fill; });
-                        tooltip.fadeOut(50);
                     });
             }
 
@@ -190,12 +208,14 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .filter(function(d) { return state_id == d.id;  })
                     .attr('class', 'active');
 
-                // reset locations
-                locationGeoJson =  {type: 'FeatureCollection', features: [] };
+                // reset markers
+                mc.clearMarkers();
 
+                //if (state_name=='Russia'){
+                  //  state_name ="Russian Federation";
+                //}
                 selectedCountry = state_name;
                 //date = picker.getDate();
-                console.log(state_name);
                 setCenter(state_name);
                 showTrends(state_name, date);
             }
@@ -216,11 +236,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function setCenter(state_name) {
+                console.log(state_name);
                 geocoder.geocode( {'address' : state_name}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {
-
                         map.setCenter(results[0].geometry.location);
-                        overlay.draw();
+                        //overlay.draw();
                         zoom(4);
                     }
                 });
@@ -273,25 +293,98 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 svg.select('#countries')
                     .selectAll('path')
                     .classed('focus',true);
-
                 getLocations();
 
                 zoom(4);
 
             }
 
+            function updateMarkers(jsonObject) {
+
+                if (mc) {
+                    mc.clearMarkers();
+                }
+                var style;
+
+                switch(selectedColor) {
+                    case red:
+                        style = 1;
+                        break;
+                    case orange:
+                        style = 2;
+                        break;
+                    default:
+                        style = 0;
+                }
+                var mcOptions = {
+                    gridSize: 20,
+                    maxZoom: 8,
+                    styles: styles[style],
+                    zoomOnClick: true
+                };
+
+                mc = new MarkerClusterer(map, [], mcOptions);
+
+                var markers = [];
+
+                for (var i = 0, feature; feature = jsonObject[i]; i++) {
+
+                    if (feature) {
+                        icon.fillColor = selectedColor;
+                        var marker = new google.maps.Marker({
+                            fid: i,
+                            position: new google.maps.LatLng(
+                                feature.geometry.coordinates[1],
+                                feature.geometry.coordinates[0]
+                            ),
+                            map: map,
+                            icon: icon
+                        });
+                        marker.set('text', feature.properties.text);
+                        //bounds.extend(marker.position)
+                        markers.push(marker);
+
+
+                        marker.addListener('click', function() {
+
+                            icon.fillColor = '#2c3e50';
+                            this.setIcon(icon);
+
+                            infowindow = new google.maps.InfoWindow({
+                                content: this.get('text')
+                            });
+
+                            infowindow.open(map, this);
+
+                        });
+                        marker.addListener("mouseout", function () {
+                            icon.fillColor = selectedColor;
+                            this.setIcon(icon);
+                            //tooltip.fadeOut(50);
+                            //infowindow.close();
+                        });
+                    }
+                }
+                //map.fitBounds(bounds);
+                //for (var i = 0; i < 100; i++) {
+                mc.addMarkers(markers);
+            }
+
             function getLocations() {
-                //load locations of topic
-                locationGeoJson.features = [{
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [13.4351858, 52.5299092]},
-                    properties: {text: 'Mobiles : #4092 ORIGINAL Monster Beats by Dr Dre iBeats In-Ear Headphones for Apple iPhone… ', fill: selectedColor}
-                },
-                {
-                    type: 'Feature',
-                    geometry: {type: 'Point', coordinates: [11.581981, 48.135125]},
-                    properties: {text: 'Text', fill: selectedColor}
-                }];
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: '../website/backend/api/Api.php',
+                    data: {
+                        action: "getTweets",
+                        location: selectedCountry
+                    },
+                    success: function (output) {
+                        //locationGeoJson.features = output;
+                        //overlay.draw();
+                        updateMarkers(output);
+                    }
+                });
             }
 
         }

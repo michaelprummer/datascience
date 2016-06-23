@@ -317,8 +317,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         style = 0;
                 }
                 var mcOptions = {
-                    gridSize: 20,
+                    gridSize: 30,
                     maxZoom: 8,
+                    minimumClusterSize: 7,
                     styles: styles[style],
                     zoomOnClick: true
                 };

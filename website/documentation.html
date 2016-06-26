@@ -43,20 +43,69 @@
       <h1>Documentation</h1>
   </div>
 
-  <div>
-      <h3>Idea</h3>
-      <p>Bla bla.</p>
+  <div class="section-doc">
+    <h2 id="#idea">Idea</h2>
+    <p>Twitter massages (Tweets) can be used to find geographically related information, various trending topics of interest and distribution of opinions.
+      Analyzing the data of a specific region within a given sliding window and location can help to find currently important events or detect crisis.
+      Goal of this project is the creation of a tool which is able to show the most important topics for a location. Thus after selecting a day and country,
+      the application will show the top five trending topics for the chosen day.</p>
   </div>
 
-  <div>
-      <h3>Data</h3>
-      <p>Bla bla bla</p>
+  <div class="section-doc">
+    <h2>Corpus</h2>
+    <p>The initial corpus of 750GB was a data set provided by the "Database Systems Group" of the LMU. The crawled tweets were all form the year 2015 and saved as raw json.
+      Overall were 10 days missing in the corpus while the file size of a day was constantly decreasing from January.</p>
+
+    <h3>Data Preprocessing</h3>
+    <p>As first step we filtered out all tweets without geo-coordinates, which reduced the file size we hand to handle drastically. All Tweets with less then 5 tokens
+      were removed, while user references and URLs didn't count. The #Hashtag itself was counted and added as a token. To improve the clustering results
+      we only used Tweets labeled as english language. Further the city and country of a Tweet were recalculated through reverse geocoding to get uniform locations.
+      The finally saved data record looked this:
+    </p>
+    <code>
+      TwitterId   |   UserId  |   longitude, latitude   |   TweetText   |   CountryCode   |   CityId
+    </code>
+    <br>
+    <br>
+    <p>We also removed the following:</p>
+    <ul>
+      <li>Removing of all Re-Tweets</li>
+      <li>Tweets from weather forecast bots.</li>
+      <li>Duplicates by using the Jaccard algorithm (~6.8M ).</li>
+      <li>General Tweets with #jobs, #birthday</li>
+      <li>Special chars like tabs or line brakes from the Tweet text.</li>
+    </ul>
+    <p>After finishing the preprocessing we had <b>179.735.774</b> usable Tweets remaining.</p>
+  </div>
+
+  <div class="section-doc">
+    <h2>Clustering</h2>
+    <p>Bla bla bla</p>
+  </div>
+
+  <div class="section-doc">
+    <h2>Visualization</h2>
+    <p>The user interface was realized with Google Maps.
+      BLA........
+    </p>
+
+    <img style="width: 75%" src="img/visualization.png">
+
+  </div>
+
+  <div class="section-doc">
+    <h2>Feature Work</h2>
+    <ul>
+      <li>Support of different languages.</li>
+      <li>Life changing of cluster parameters.</li>
+    </ul>
+
   </div>
 
 </div>
 
 
-<footer class="footer">
+<footer  class="footer" style="position: relative;">
   <div class="container">
     <p class="text-muted">@LMU 2016. Jennifer Ling, Michael Prummer, Sandra Zollner</p>
   </div>

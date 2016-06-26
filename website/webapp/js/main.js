@@ -306,7 +306,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 }
                 var style;
 
-                switch(selectedColor) {
+                switch (selectedColor) {
                     case red:
                         style = 1;
                         break;
@@ -346,7 +346,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         markers.push(marker);
 
 
-                        marker.addListener('click', function() {
+                        marker.addListener('mouseover', function () {
 
                             icon.fillColor = '#2c3e50';
                             this.setIcon(icon);
@@ -361,14 +361,22 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         marker.addListener("mouseout", function () {
                             icon.fillColor = selectedColor;
                             this.setIcon(icon);
-                            //tooltip.fadeOut(50);
-                            //infowindow.close();
+                            infowindow.close();
                         });
                     }
                 }
                 //map.fitBounds(bounds);
-                //for (var i = 0; i < 100; i++) {
-                mc.addMarkers(markers);
+                for (var i = 0; i < 100; i++) {
+                    mc.addMarkers(markers);
+
+                    mc.addListener('mouseover', function () {
+                        infowindow = new google.maps.InfoWindow({
+                            content: 'test'
+                        });
+
+                        infowindow.open(map, this);
+                    });
+                }
             }
 
             function getLocations() {

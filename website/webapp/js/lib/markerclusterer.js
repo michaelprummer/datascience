@@ -1002,6 +1002,7 @@ Cluster.prototype.updateIcon = function() {
 
   var numStyles = this.markerClusterer_.getStyles().length;
   var sums = this.markerClusterer_.getCalculator()(this.markers_, numStyles);
+
   this.clusterIcon_.setCenter(this.center_);
   this.clusterIcon_.setSums(sums);
   this.clusterIcon_.show();
@@ -1067,8 +1068,8 @@ ClusterIcon.prototype.onAdd = function() {
   this.div_ = document.createElement('DIV');
   if (this.visible_) {
     var pos = this.getPosFromLatLng_(this.center_);
-    this.div_.style.cssText = this.createCss(pos);
-    this.div_.innerHTML = this.sums_.text;
+    this.div_.style.cssText = this.createCss(pos, this.sums_);
+    //this.div_.innerHTML = this.sums_.text;
   }
 
   var panes = this.getPanes();
@@ -1223,11 +1224,14 @@ ClusterIcon.prototype.setCenter = function(center) {
  * @param {google.maps.Point} pos The position.
  * @return {string} The css style text.
  */
-ClusterIcon.prototype.createCss = function(pos) {
+ClusterIcon.prototype.createCss = function(pos, sums) {
+
+  var size = parseInt(sums.text);
+  var size = Math.sqrt(size) * 2 + 10;
   var style = [];
   style.push('background-image:url(' + this.url_ + ');');
   var backgroundPosition = this.backgroundPosition_ ? this.backgroundPosition_ : '0 0';
-  style.push('background-position:' + backgroundPosition + ';');
+  style.push('background-size: cover;');
 
   if (typeof this.anchor_ === 'object') {
     if (typeof this.anchor_[0] === 'number' && this.anchor_[0] > 0 &&
@@ -1236,10 +1240,10 @@ ClusterIcon.prototype.createCss = function(pos) {
           'px; padding-top:' + this.anchor_[0] + 'px;');
     } else if (typeof this.anchor_[0] === 'number' && this.anchor_[0] < 0 &&
         -this.anchor_[0] < this.height_) {
-      style.push('height:' + this.height_ + 'px; line-height:' + (this.height_ + this.anchor_[0]) +
+      style.push('height:' + size + 'px; line-height:' + (this.height_ + this.anchor_[0]) +
           'px;');
     } else {
-      style.push('height:' + this.height_ + 'px; line-height:' + this.height_ +
+      style.push('height:' + size + 'px; line-height:' + this.height_ +
           'px;');
     }
     if (typeof this.anchor_[1] === 'number' && this.anchor_[1] > 0 &&
@@ -1247,11 +1251,11 @@ ClusterIcon.prototype.createCss = function(pos) {
       style.push('width:' + (this.width_ - this.anchor_[1]) +
           'px; padding-left:' + this.anchor_[1] + 'px;');
     } else {
-      style.push('width:' + this.width_ + 'px; text-align:center;');
+      style.push('width:' + size + 'px; text-align:center;');
     }
   } else {
-    style.push('height:' + this.height_ + 'px; line-height:' +
-        this.height_ + 'px; width:' + this.width_ + 'px; text-align:center;');
+    style.push('height:' + size + 'px; line-height:' +
+        size + 'px; width:' + size + 'px; text-align:center;');
   }
 
   var txtColor = this.textColor_ ? this.textColor_ : 'black';
@@ -1260,6 +1264,8 @@ ClusterIcon.prototype.createCss = function(pos) {
   style.push('cursor:pointer; top:' + pos.y + 'px; left:' +
       pos.x + 'px; color:' + txtColor + '; position:absolute; font-size:' +
       txtSize + 'px; font-family:Arial,sans-serif; font-weight:bold');
+
+  style.push('height:' + size + 'px;');
   return style.join('');
 };
 

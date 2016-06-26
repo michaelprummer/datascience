@@ -13,6 +13,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             height = $('.main').height();
 
         var div = d3.select('#map');
+        var tooltip = $("#example-tweet");
         var svg;
         var overlay = new google.maps.OverlayView();
         var path;
@@ -22,6 +23,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var selectedCountry;
         var selectedTopic;
         var selectedColor;
+
+        var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
         var lilac = '#8e44ad';
         var red = '#F62459';
@@ -101,8 +104,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 iconAnchor: [0, 0]
             }]
         ];
-        var mcOptions;
-        var mc = new MarkerClusterer(map);
+        /*var mcOptions;
+        var mc = new MarkerClusterer(map);*/
 
         // Load the  json data
         queue()
@@ -166,6 +169,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 path = d3.geo.path().projection(googleMapProjection);
 
                 redrawCountries(path);
+                redrawLocations(path);
+
             }
 
             function redrawCountries(path) {
@@ -197,6 +202,37 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     });
             }
 
+            function redrawLocations(path) {
+                // updating locations (circle diagram)
+                svg.select('g.locations')
+                    .selectAll("path")
+                    .remove();
+
+                svg.select('g.locations')
+                    .selectAll("path")
+                    .data(locationGeoJson.features)
+                    .enter().append("path")
+                    .attr("d", path.pointRadius(1 * map.getZoom()))
+                    .style("fill", selectedColor)
+                    .on("mouseover", function (d) {
+
+                        d3.select(this).style("fill", "#2c3e50");
+
+                        tooltip.fadeOut(100, function () {
+                            // Popup content
+                            tooltip.select('p').html(d.properties.text);
+                            $("#example-tweet").fadeIn(100);
+                        });
+                        tooltip.css({
+                            "left": d3.event.pageX + 20,
+                            "top": d3.event.pageY
+                        });
+                    }).
+                    on("mouseout", function () {
+                        d3.select(this).style("fill", selectedColor);
+                        tooltip.fadeOut(50);
+                    });
+            }
 
             function stateSelected(d) {
                 state_id = d.id;
@@ -209,7 +245,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .attr('class', 'active');
 
                 // reset markers
-                mc.clearMarkers();
+                //mc.clearMarkers();
 
                 //if (state_name=='Russia'){
                   //  state_name ="Russian Federation";
@@ -389,9 +425,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         location: selectedCountry
                     },
                     success: function (output) {
-                        //locationGeoJson.features = output;
-                        //overlay.draw();
-                        updateMarkers(output);
+                        locationGeoJson.features = output;
+                        overlay.draw();
+                        //updateMarkers(output);
                     }
                 });
             }

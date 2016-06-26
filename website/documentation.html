@@ -62,19 +62,28 @@
       we only used Tweets labeled as english language. Further the city and country of a Tweet were recalculated through reverse geocoding to get uniform locations.
       The finally saved data record looked this:
     </p>
-    <code>
+    <pre><code class="highlight language-markup">
       TwitterId   |   UserId  |   longitude, latitude   |   TweetText   |   CountryCode   |   CityId
-    </code>
+    </code></pre>
     <br>
     <br>
     <p>We also removed the following:</p>
     <ul>
       <li>Removing of all Re-Tweets</li>
       <li>Tweets from weather forecast bots.</li>
-      <li>Duplicates by using the Jaccard algorithm (~6.8M ).</li>
+      <li>Duplicates by using the Jaccard algorithm (~6.8M ).
+      <pre><code class="highlight language-python">
+      def jaccard(a, b):
+        intersection = float(len(set(a) & set(b)))
+        union = float(len(set(a) | set(b)))
+        return intersection/union
+    </code></pre>
+
+      </li>
       <li>General Tweets with #jobs, #birthday</li>
       <li>Special chars like tabs or line brakes from the Tweet text.</li>
     </ul>
+
     <p>After finishing the preprocessing we had <b>179.735.774</b> usable Tweets remaining.</p>
   </div>
 
@@ -117,6 +126,8 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
-<script src="../../dist/js/bootstrap.min.js"></script>
+<script src="dist/js/bootstrap.min.js"></script>
+<link href="js/prism.js" rel="stylesheet">
+<link href="prism.css" rel="stylesheet">
 </body>
 </html>

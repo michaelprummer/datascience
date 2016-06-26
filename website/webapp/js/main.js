@@ -245,11 +245,12 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .attr('class', 'active');
 
                 // reset markers
+                locationGeoJson =  {type: 'FeatureCollection', features: [] };
                 //mc.clearMarkers();
 
-                //if (state_name=='Russia'){
-                  //  state_name ="Russian Federation";
-                //}
+                if (state_name==='Russia'){
+                  state_name ="Russian Federation";
+                }
                 selectedCountry = state_name;
                 //date = picker.getDate();
                 setCenter(state_name);

@@ -22,7 +22,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
         var selectedCountry = null;
         var selectedTopic = null;
+        var selectedDate = null;
         var selectedColor = null;
+        var clusters = null;
 
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
@@ -243,16 +245,10 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 selectedCountry = state_name;
                 //date = picker.getDate();
                 setCenter(selectedCountry);
-                showTrends(selectedCountry, date);
+                
+                getClusters();
             }
 
-            function dateSelected(date) {
-                console.log(date);
-                // reset markers
-                locationGeoJson =  {type: 'FeatureCollection', features: [] };
-                showTrends(selectedCountry, date);
-                overlay.draw();
-            }
 
             // create date picker
             var picker = new Pikaday({
@@ -266,8 +262,10 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 bound: false,
                 container: document.getElementById('date-picker'),
                 onSelect: function () {
-                    var date = this;
-                    dateSelected(date);
+                    date = moment(picker.getDate()).format('YYYYMMDD');
+                    selectedDate = date;
+
+                    getClusters();
                 }
             });
 
@@ -302,10 +300,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             // called after country was selected -- or after new date is selected
-            function showTrends(state_name, date){
+            function showTrends(){
 
-                //TODO
-                //getClusters(state_name, date);
+                locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
                 var trend1 = ["dre", "beat", "billionair", "apple", "dre", "beat", "billionairbeat", "apple"];
                 var trend2 = ["cleveland", "football", "brown", "draft", "dallas"];
@@ -314,6 +311,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 newWordCloud(trend1, ".cluster-1");
                 newWordCloud(trend2, ".cluster-2");
                 newWordCloud(trend3, ".cluster-3");
+
+                overlay.draw();
             }
 
             function newWordCloud(words, id) {
@@ -423,19 +422,20 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 }
             }
 
-            function getClusters(state_name, date) {
+            function getClusters() {
                 $.ajax({
                     type: "GET",
                     dataType: "json",
                     url: '../website/backend/api/Api.php',
                     data: {
-                        action: "getTweets",
-                        location: selectedCountry
+                        action: "getClusters",
+                        location: selectedCountry,
+                        date: selectedDate
                     },
                     success: function (output) {
-                        locationGeoJson.features = output;
-                        overlay.draw();
-                        //updateMarkers(output);
+                        console.log(output);
+                        clusters = output;
+                        showTrends();
                     }
                 });
             }

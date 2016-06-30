@@ -35,6 +35,11 @@ if(isset($_GET['action'])) {
     switch($action) {
         case 'getTweets':
             get_tweets($_GET['location']);
+            //get_tweets($_GET['clusterID']);
+            break;
+
+        case 'getClusters':
+            get_clusters($_GET['location'], $_GET['date']);
             break;
     }
 }
@@ -92,12 +97,40 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
     $db -> query_bool($insert);
 }
 
+
+function get_clusters($location, $date){
+
+    global $db;
+
+    $query = "SELECT clusterID, terms FROM clusters WHERE country='".$location."' AND date='".$date."'";
+    $result = $db -> query($query);
+
+    if (sizeof($result) > 0) {
+        $arr = [];
+        $inc = 0;
+
+        foreach ($result as $row) {
+            $jsonArrayObject = (array(
+                'id' => $row->clusterID,
+                'terms' => $row->terms
+            ));
+            $arr[$inc] = $jsonArrayObject;
+            $inc++;
+        }
+        $json_array = json_encode($arr);
+        echo $json_array;
+    }
+    else{
+        echo "0 results";
+    }
+}
+
 function get_tweets($location){
 
     global $db;
 
     $query = "SELECT latitude, longitude, twitter_id FROM tweets WHERE location='".$location."'";
-
+    // $query = "SELECT latitude, longitude, twitter_id FROM tweets WHERE clusterID='".$clusterID."'";
     $result = $db -> query($query);
 
     if (sizeof($result) > 0) {

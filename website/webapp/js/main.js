@@ -14,15 +14,15 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
         var div = d3.select('#map');
         var tooltip = $("#example-tweet");
-        var svg;
+        var svg = null;
         var overlay = new google.maps.OverlayView();
-        var path;
-        var overlayProjection;
+        var path = null;
+        var overlayProjection = null;
 
 
-        var selectedCountry;
-        var selectedTopic;
-        var selectedColor;
+        var selectedCountry = null;
+        var selectedTopic = null;
+        var selectedColor = null;
 
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
@@ -44,7 +44,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             draggableCursor: 'initial',
 
             // Source: https://snazzymaps.com/style/151/ultra-light-with-labels
-            styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#e9e9e9"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+            //styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#e9e9e9"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+            styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#b9dce6"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
         };
 
         // Create the Google Map using our element and options defined above
@@ -129,35 +130,36 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             };
 
             redraw = function() {
-
                 overlayProjection = this.getProjection();
-                var worldwidth = overlayProjection.getWorldWidth();
-                var prevX = null;
 
-                // Turn the overlay projection into a d3 projection
-                var googleMapProjection = function (coordinates) {
-                    var googleCoordinates = new google.maps.LatLng(coordinates[1], coordinates[0]);
-                    var pixelCoordinates = overlayProjection.fromLatLngToDivPixel(googleCoordinates);
+                if(typeof overlayProjection.getWorldWidth === 'function'){
+                    var worldwidth = overlayProjection.getWorldWidth();
+                    var prevX = null;
 
-                    if (prevX != null) {
-                        // correction of points lying at the edge of the world
-                        var dist = pixelCoordinates.x - prevX;
-                        if (Math.abs(dist) > (worldwidth * 0.9)) {
-                            if (dist > 0) {
-                                pixelCoordinates.x -= worldwidth
-                            } else {
-                                pixelCoordinates.x += worldwidth
+                    // Turn the overlay projection into a d3 projection
+                    var googleMapProjection = function (coordinates) {
+                        var googleCoordinates = new google.maps.LatLng(coordinates[1], coordinates[0]);
+                        var pixelCoordinates = overlayProjection.fromLatLngToDivPixel(googleCoordinates);
+
+                        if (prevX != null) {
+                            // correction of points lying at the edge of the world
+                            var dist = pixelCoordinates.x - prevX;
+                            if (Math.abs(dist) > (worldwidth * 0.9)) {
+                                if (dist > 0) {
+                                    pixelCoordinates.x -= worldwidth
+                                } else {
+                                    pixelCoordinates.x += worldwidth
+                                }
                             }
                         }
+                        prevX = pixelCoordinates.x;
+                        return [pixelCoordinates.x + 4000, pixelCoordinates.y + 4000];
                     }
-                    prevX = pixelCoordinates.x;
-                    return [pixelCoordinates.x + 4000, pixelCoordinates.y + 4000];
+                    path = d3.geo.path().projection(googleMapProjection);
+
+                    redrawCountries(path);
+                    redrawLocations(path);
                 }
-                path = d3.geo.path().projection(googleMapProjection);
-
-                redrawCountries(path);
-                redrawLocations(path);
-
             }
 
             function redrawCountries(path) {

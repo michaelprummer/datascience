@@ -22,7 +22,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
         var selectedCountry = null;
         var selectedTopic = null;
-        var selectedDate = null;
+        var selectedDate = "20150101";
         var selectedColor = null;
         var clusters = null;
 
@@ -94,8 +94,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 iconAnchor: [0, 0]
             }]
         ];
-        var mcOptions;
-        var mc = new MarkerClusterer(map);
+
+        /*var mcOptions;
+        var mc = new MarkerClusterer(map);*/
 
         // Load the  json data
         queue()
@@ -235,10 +236,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .filter(function(d) { return state_id == d.id;  })
                     .attr('class', 'active');
 
-                // reset markers
-                locationGeoJson =  {type: 'FeatureCollection', features: [] };
-                //mc.clearMarkers();
-
                 if (state_name==='Russia'){
                   state_name ="Russian Federation";
                 }
@@ -264,7 +261,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 onSelect: function () {
                     date = moment(picker.getDate()).format('YYYYMMDD');
                     selectedDate = date;
-
                     getClusters();
                 }
             });
@@ -295,7 +291,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     if ($(this).hasClass('cluster-2')) { selectedColor = red; }
                     if ($(this).hasClass('cluster-3')) { selectedColor = orange; }
 
-                    showLocations();
+                    showLocations($(this).attr('data-id'));
                 });
             }
 
@@ -304,19 +300,23 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
-                var trend1 = ["dre", "beat", "billionair", "apple", "dre", "beat", "billionairbeat", "apple"];
-                var trend2 = ["cleveland", "football", "brown", "draft", "dallas"];
-                var trend3 = ["mexican", "celebrity", "cinco", "mayo"];
-
-                newWordCloud(trend1, ".cluster-1");
-                newWordCloud(trend2, ".cluster-2");
-                newWordCloud(trend3, ".cluster-3");
-
-                overlay.draw();
+                if(clusters[0]) {
+                    var terms = clusters[0]['terms'].split(",");
+                    newWordCloud(terms, ".cluster-1", clusters[0]['id']);
+                }
+                if(clusters[1]) {
+                    var terms = clusters[1]['terms'].split(",");
+                    newWordCloud(terms, ".cluster-2", clusters[1]['id']);
+                }
+                if(clusters[2]) {
+                    var terms = clusters[2]['terms'].split(",");
+                    newWordCloud(terms, ".cluster-3", clusters[2]['id']);
+                }
             }
 
-            function newWordCloud(words, id) {
+            function newWordCloud(words, id, clusterID) {
                 d3.select(id)
+                    .attr('data-id', clusterID)
                     .selectAll("span").remove();
                 d3.select(id)
                     .selectAll("span")
@@ -331,12 +331,12 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
 
-            function showLocations() {
+            function showLocations(clusterID) {
 
                 svg.select('#countries')
                     .selectAll('path')
                     .classed('focus',true);
-                getLocations();
+                getLocations(clusterID);
 
                 zoom(4);
 
@@ -423,6 +423,12 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function getClusters() {
+                console.log('empty geojson');
+                locationGeoJson =  {type: 'FeatureCollection', features: [] };
+                clusters = null;
+                $('.topics').empty();
+                overlay.draw();
+
                 $.ajax({
                     type: "GET",
                     dataType: "json",
@@ -436,11 +442,13 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         console.log(output);
                         clusters = output;
                         showTrends();
+                        selectedColor = lilac;
+                        showLocations(clusters[0]['id']);
                     }
                 });
             }
 
-            function getLocations() {
+            function getLocations(clusterID) {
                 $.ajax({
                     type: "GET",
                     dataType: "json",
@@ -450,9 +458,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         location: selectedCountry
                     },
                     success: function (output) {
-                        //locationGeoJson.features = output;
+                        locationGeoJson.features = output;
                         overlay.draw();
-                        updateMarkers(output);
+                        //updateMarkers(output);
                     }
                 });
             }

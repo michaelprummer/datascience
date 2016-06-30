@@ -439,7 +439,10 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 });
             }
 
+            
+            function getClusteringAlgorithm() {
+                return $('input[name=optradio]:checked', '#alg-option form').val()
+            }
+
         }
-
-
     });

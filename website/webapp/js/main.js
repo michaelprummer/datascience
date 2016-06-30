@@ -92,8 +92,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 iconAnchor: [0, 0]
             }]
         ];
-        /*var mcOptions;
-        var mc = new MarkerClusterer(map);*/
+        var mcOptions;
+        var mc = new MarkerClusterer(map);
 
         // Load the  json data
         queue()
@@ -432,9 +432,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         location: selectedCountry
                     },
                     success: function (output) {
-                        locationGeoJson.features = output;
+                        //locationGeoJson.features = output;
                         overlay.draw();
-                        //updateMarkers(output);
+                        updateMarkers(output);
                     }
                 });
             }

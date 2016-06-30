@@ -266,7 +266,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 bound: false,
                 container: document.getElementById('date-picker'),
                 onSelect: function () {
-                    dateSelected(this.getDate().getTime() / 1000);
+                    var date = this;
+                    dateSelected(date);
                 }
             });
 
@@ -304,7 +305,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             function showTrends(state_name, date){
 
                 //TODO
-                //getTrends(state_name, date);
+                //getClusters(state_name, date);
 
                 var trend1 = ["dre", "beat", "billionair", "apple", "dre", "beat", "billionairbeat", "apple"];
                 var trend2 = ["cleveland", "football", "brown", "draft", "dallas"];
@@ -420,6 +421,23 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         infowindow.open(map, this);
                     });
                 }
+            }
+
+            function getClusters(state_name, date) {
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: '../website/backend/api/Api.php',
+                    data: {
+                        action: "getTweets",
+                        location: selectedCountry
+                    },
+                    success: function (output) {
+                        locationGeoJson.features = output;
+                        overlay.draw();
+                        //updateMarkers(output);
+                    }
+                });
             }
 
             function getLocations() {

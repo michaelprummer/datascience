@@ -30,19 +30,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var red = '#F62459';
         var orange = '#e67e22';
 
-        // create date picker
-        var picker = new Pikaday({
-            field: document.getElementById('date'),
-            minDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
-            maxDate: moment("31-12-2015", "DD-MM-YYYY").toDate(),
-            defaultDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
-            setDefaultDate: true,
-            firstDay: 1,
-            format: 'D-M-YYYY',
-            bound: false,
-            container: document.getElementById('date-picker')
-        });
-
         geocoder = new google.maps.Geocoder();
 
         // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
@@ -253,16 +240,34 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 }
                 selectedCountry = state_name;
                 //date = picker.getDate();
-                setCenter(state_name);
-                showTrends(state_name, date);
-            }
-
-            function dateSelected() {
-
-                resetLocations();
-
+                setCenter(selectedCountry);
                 showTrends(selectedCountry, date);
             }
+
+            function dateSelected(date) {
+                console.log(date);
+                // reset markers
+                locationGeoJson =  {type: 'FeatureCollection', features: [] };
+                showTrends(selectedCountry, date);
+                overlay.draw();
+            }
+
+            // create date picker
+            var picker = new Pikaday({
+                field: document.getElementById('date'),
+                minDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
+                maxDate: moment("31-12-2015", "DD-MM-YYYY").toDate(),
+                defaultDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
+                setDefaultDate: true,
+                firstDay: 1,
+                format: 'D-M-YYYY',
+                bound: false,
+                container: document.getElementById('date-picker'),
+                onSelect: function () {
+                    dateSelected(this.getDate().getTime() / 1000);
+                }
+            });
+
 
             function zoom(zoom) {
                 if (map.getZoom() == zoom) {
@@ -278,7 +283,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     if (status == google.maps.GeocoderStatus.OK) {
                         map.setCenter(results[0].geometry.location);
                         //overlay.draw();
-                        zoom(4);
+                        //zoom(4);
                     }
                 });
             }
@@ -306,7 +311,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 newWordCloud(trend1, ".cluster-1");
                 newWordCloud(trend2, ".cluster-2");
                 newWordCloud(trend3, ".cluster-3");
-
             }
 
             function newWordCloud(words, id) {

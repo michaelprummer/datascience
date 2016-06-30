@@ -151,3 +151,7 @@ input#date {
     border-radius: 6px;
     z-index:1000;
 }
+
+.date-picker-wrap {
+    min-height:500px;
+}

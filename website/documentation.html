@@ -102,8 +102,22 @@
     <p>Data is stored in a MySql Database and accessed through a PHP wrapper with post requests.</p>
 
     <h3>Frontend</h3>
-    <p>The user interface was realized with Google Maps and bootstrap.
-      <p style="color:mediumvioletred">BLA........</p>
+    <p>Technologies used for the user interface:
+        <ul>
+            <li><a href="https://jquery.com/">jQuery</a></li>
+            <li><a href="https://developers.google.com/maps/?hl=de">Google Maps API</a></li>
+            <li><a href="https://d3js.org/">D3</a></li>
+            <li><a href="http://geojson.org/">GeoJson</a></li>
+            <li><a href="https://dbushell.github.io/Pikaday/">Pikaday</a></li>
+        </ul>
+      The interface consists out of an interactive GoogleMap, a datepicker as well as controls to select the cluster algorithm.
+      A custom <a href="https://developers.google.com/maps/documentation/javascript/customoverlays">OverlayView</a> containing geographic data is added to the Google Map.
+      Users can select a combination of a country and a day they want to explore.
+      Country borders, encoded in GeoJSON data, are rendered as SVG paths into the GoogleMaps overlay and can be selected through clicking on them.
+      After selecting country and date, the top three clusters for this period of time are getting displayed on the left side of the screen.
+      All the tweets belonging to the selected cluster get mapped onto the overlay as well. On mouseover events the textual content of the tweet gets displayed as a custom tooltip.
+
+
     </p>
 
     <img style="width: 75%" src="img/visualization.png">

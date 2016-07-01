@@ -206,10 +206,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .enter().append("path")
                     .attr("d", path.pointRadius(1 * map.getZoom()))
                     .style("fill", selectedColor)
+                    .on("click", function (d) {
+                        OpenInNewTab("https://twitter.com/statuses/" + d.properties.text)
+                    })
                     .on("mouseover", function (d) {
-
                         d3.select(this).style("fill", "#2c3e50");
-
                         tooltip.fadeOut(100, function () {
                             // Popup content
                             tooltip.select('p').html(d.properties.text);
@@ -224,6 +225,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         d3.select(this).style("fill", selectedColor);
                         tooltip.fadeOut(50);
                     });
+            }
+
+            function OpenInNewTab(url) {
+                var win = window.open(url, '_blank');
+                win.focus();
             }
 
             function stateSelected(d) {

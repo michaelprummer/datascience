@@ -155,3 +155,8 @@ input#date {
 .date-picker-wrap {
     min-height:500px;
 }
+
+.gmap-twitterlink {
+    display: block;
+    padding: 1em;
+}

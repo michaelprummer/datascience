@@ -21,7 +21,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
 
         var selectedCountry = null;
-        var selectedTopic = null;
+        var selectedClusterType = 'n';
         var selectedDate = "20150101";
         var selectedColor = null;
         var clusters = null;
@@ -456,6 +456,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     data: {
                         action: "getTweets",
                         location: selectedCountry
+                        //,type: selectedClusterType
                     },
                     success: function (output) {
                         locationGeoJson.features = output;

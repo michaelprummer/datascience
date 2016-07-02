@@ -71,9 +71,9 @@ function database_setup() {
 
     $tweetTable = "CREATE TABLE Tweets (
         tweetID BIGINT(20),
-        kmeansID VARCHAR(30),
         nmfID VARCHAR(30),
-        lda_tfidfID VARCHAR(30),
+        ldaID VARCHAR(30),
+        kmeansID VARCHAR(30),
         latitude DECIMAL(10, 8) NOT NULL,
         longitude  DECIMAL(11, 8) NOT NULL,
         text VARCHAR(140)
@@ -81,7 +81,7 @@ function database_setup() {
 
     $clusterTable = "CREATE TABLE Clusters (
         clusterID INT(8) PRIMARY KEY,
-        ctype INT (4),
+        ctype VARCHAR(10),
         terms VARCHAR(255) NOT NULL,
         cdate VARCHAR(63) NOT NULL,
         country VARCHAR(63) NOT NULL
@@ -106,7 +106,7 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
 }
 
 
-function get_clusters($location, $date){
+function get_clusters($location, $date, $algo){
 
     global $db;
 
@@ -154,7 +154,7 @@ function get_tweets($algo, $clusterID){
                 ),
             'properties'=> array(
                 'text'=> $row->text,
-                'id'=>$row->id
+                'id'=>$row->tweetID
                 )
             ));
             $arr[$inc] = $jsonArrayObject;

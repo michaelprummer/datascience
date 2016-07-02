@@ -7,6 +7,23 @@ define("DB_NAME", "datascience");
 $db = check_db();
 
 
+
+/*
+ * Update CLuster queries for phpmyadmin
+UPDATE t , (SELECT DISTINCT nmfID, tweetId FROM t WHERE nmfID > 0) b
+SET t.nmfID = b.nmfID
+WHERE t.tweetId = b.tweetId AND t.nmfID = -1
+
+UPDATE t , (SELECT DISTINCT ldaID, tweetId FROM t WHERE ldaID > 0) b
+SET t.ldaID = b.ldaID
+WHERE t.tweetId = b.tweetId AND t.ldaID = -1
+
+UPDATE t , (SELECT DISTINCT kmeansID, tweetId FROM t WHERE kmeansID > 0) b
+SET t.kmeansID = b.kmeansID
+WHERE t.tweetId = b.tweetId AND t.kmeansID = -1
+*/
+
+
 if(isset($_POST['action'])) {
 
     $action = $_POST['action'];

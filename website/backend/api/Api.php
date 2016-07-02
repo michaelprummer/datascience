@@ -88,10 +88,17 @@ function add_tweet($id, $cluster_ID, $latitude, $longitude, $text, $algo){
 
     global $db;
     //$db = check_db();
-    //$timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets1` (`id`, `".$algo."_ID`,`latitude`, `longitude`, `text`) VALUES ('$id', '$cluster_ID', '$latitude', '$longitude', '$text');";
-    echo $insert;
+    $query = "SELECT id FROM tweets1 WHERE id='".$id."'";
+    $result = $db -> query($query);
+
+    if (sizeof($result) > 0) {
+       $insert = "UPDATE `" . DB_NAME . "`.`tweets1` SET `".$algo."_ID`='$cluster_ID' WHERE id='$id'";
+    }
+    else{
+       $insert = "INSERT INTO `" . DB_NAME . "`.`tweets1` (`id`, `".$algo."_ID`,`latitude`, `longitude`, `text`) VALUES ('$id', '$cluster_ID', '$latitude', '$longitude', '$text');";
+    }
+
     $r = $db -> query_bool($insert);
     echo $r==1?"OK":"FAILED";
 }

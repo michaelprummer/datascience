@@ -53,7 +53,7 @@ if (isset($_POST["submit"])) {
 
             if ($handle) {
 
-                $algo = "kmeans";
+                $algo = explode( '_', $_FILES["fileToUpload"]["name"])[0];
 
                 $max = isset($_POST['numOfTweets'])?($_POST['numOfTweets']+1):100;
 

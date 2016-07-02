@@ -34,12 +34,11 @@ if(isset($_GET['action'])) {
 
     switch($action) {
         case 'getTweets':
-            get_tweets($_GET['location']);
-            //get_tweets($_GET['clusterID']);
+            get_tweets($_GET['type'], $_GET['cluster_id']);
             break;
 
         case 'getClusters':
-            get_clusters($_GET['location'], $_GET['date']);
+            get_clusters($_GET['location'], $_GET['date'],  $_GET['type']);
             break;
     }
 }
@@ -71,7 +70,7 @@ function database_setup() {
     global $db;
 
     $tweetTable = "CREATE TABLE Tweets (
-        tweetID INT(8) PRIMARY KEY,
+        tweetID INT(8),
         kmeansID VARCHAR(30),
         nmfID VARCHAR(30),
         lda_tfidfID VARCHAR(30),
@@ -101,7 +100,7 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
     //$db = check_db();
     $timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`tweetDd`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
+    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`tweetId`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
 
     $db -> query_bool($insert);
 }
@@ -111,7 +110,7 @@ function get_clusters($location, $date){
 
     global $db;
 
-    $query = "SELECT clusterID, terms FROM clusters WHERE country='".$location."' AND date='".$date."'";
+    $query = "SELECT clusterID, terms FROM clusters WHERE country='".$location."' AND cdate='".$date."' AND ctype='".$algo."'";
     $result = $db -> query($query);
 
     if (sizeof($result) > 0) {
@@ -134,11 +133,11 @@ function get_clusters($location, $date){
     }
 }
 
-function get_tweets($location){
+function get_tweets($algo, $clusterID){
 
     global $db;
 
-    $query = "SELECT latitude, longitude, twitter_id FROM tweets WHERE location='".$location."'";
+    $query = "SELECT latitude, longitude, text, tweetID FROM tweets WHERE ".$algo."ID='".$clusterID."'";
     // $query = "SELECT latitude, longitude, twitter_id FROM tweets WHERE clusterID='".$clusterID."'";
     $result = $db -> query($query);
 
@@ -154,7 +153,8 @@ function get_tweets($location){
                 'coordinates' => array($row->longitude, $row->latitude)
                 ),
             'properties'=> array(
-                'text'=> $row->twitter_id
+                'text'=> $row->text,
+                'id'=>$row->id
                 )
             ));
             $arr[$inc] = $jsonArrayObject;

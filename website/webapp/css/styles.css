@@ -49,10 +49,11 @@ input#date {
 }
 
 .topics {
+    max-width: 250px;
     cursor: pointer;
     opacity: 0.8;
     display: block;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     padding: 0 15px;
 }
 .topics:after {
@@ -66,8 +67,10 @@ input#date {
 }
 .cluster-1 {
     color: #8e44ad;
+    margin: 0 auto 20px;
 }
 .cluster-2 {
+    float: right;
     color: #F62459;
 }
 

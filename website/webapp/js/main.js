@@ -21,7 +21,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
 
         var selectedCountry = null;
-        var selectedTopic = null;
+        var selectedClusterType = 'n';
         var selectedDate = "20150101";
         var selectedColor = null;
         var clusters = null;
@@ -307,15 +307,15 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
                 if(clusters[0]) {
-                    var terms = clusters[0]['terms'].split(",");
+                    var terms = clusters[0]['terms'].split(" ");
                     newWordCloud(terms, ".cluster-1", clusters[0]['id']);
                 }
                 if(clusters[1]) {
-                    var terms = clusters[1]['terms'].split(",");
+                    var terms = clusters[1]['terms'].split(" ");
                     newWordCloud(terms, ".cluster-2", clusters[1]['id']);
                 }
                 if(clusters[2]) {
-                    var terms = clusters[2]['terms'].split(",");
+                    var terms = clusters[2]['terms'].split(" ");
                     newWordCloud(terms, ".cluster-3", clusters[2]['id']);
                 }
             }
@@ -329,7 +329,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .data(words)
                     .enter().append("span")
                     .attr("style", function() {
-                        size = 14 + Math.random() * 20;
+                        size = 12 + Math.random() * 6;
                         opacity = 0.8 + Math.random() * 0.2;
                         return 'font-size: '+ size + 'px; opacity: '+ opacity;
                     })
@@ -442,7 +442,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     data: {
                         action: "getClusters",
                         location: selectedCountry,
-                        date: selectedDate
+                        date: selectedDate,
+                        type: getClusteringAlgorithm()
                     },
                     success: function (output) {
                         console.log(output);
@@ -461,7 +462,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     url: '../website/backend/api/Api.php',
                     data: {
                         action: "getTweets",
-                        location: selectedCountry
+                        cluster_id: clusterID,
+                        type: selectedClusterType
                     },
                     success: function (output) {
                         locationGeoJson.features = output;
@@ -473,8 +475,14 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
             
             function getClusteringAlgorithm() {
-                return $('input[name=optradio]:checked', '#alg-option form').val()
+                selectedClusterType = $('input[name=optradio]:checked', '#alg-option form').val();
+                return selectedClusterType;
             }
+
+            $('input[name=optradio]').on("click", function() {
+                selectedClusterType = $('input[name=optradio]:checked', '#alg-option form').val();
+                getClusters();
+            });
 
         }
     });

@@ -68,21 +68,30 @@ function database_clear() {
 }
 
 function database_setup() {
-
     global $db;
 
-    $table = "CREATE TABLE Tweets (
-        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        time int(10),
-        username VARCHAR(30) NOT NULL,
-        twitter_id VARCHAR(30) NOT NULL,
-        content VARCHAR(255),
+    $tweetTable = "CREATE TABLE Tweets (
+        tweetID INT(8) PRIMARY KEY,
+        kmeansID VARCHAR(30),
+        nmfID VARCHAR(30),
+        lda_tfidfID VARCHAR(30),
         latitude DECIMAL(10, 8) NOT NULL,
         longitude  DECIMAL(11, 8) NOT NULL,
-        location VARCHAR(30)
+        text VARCHAR(140)
     )";
 
-    $r = $db -> query_bool($table);
+    $clusterTable = "CREATE TABLE Clusters (
+        clusterID INT(8) PRIMARY KEY,
+        ctype INT (4),
+        terms VARCHAR(255) NOT NULL,
+        cdate VARCHAR(63) NOT NULL,
+        country VARCHAR(63) NOT NULL
+    )";
+
+
+    $r = $db -> query_bool($tweetTable);
+    $r = $db -> query_bool($clusterTable);
+
     echo $r==1?"OK":"FAILED";
 }
 
@@ -92,7 +101,7 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
     //$db = check_db();
     $timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`id`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
+    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`tweetDd`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
 
     $db -> query_bool($insert);
 }

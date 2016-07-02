@@ -13,12 +13,21 @@
     <button onclick="RemoveDB();">Remove DB</button>
 </div>
 <div class="box">
-    <h3>File Import</h3>
+    <h3>Cluster Import</h3>
     <form action="" method="post" enctype="multipart/form-data">
         Number of Tweets:<br>
         <input type="number" value="30" name="numOfTweets">
         <input type="file" name="fileToUpload" id="fileToUpload">
-        <input type="submit" value="Import" name="submit">
+        <input type="submit" value="ImportCluster" name="ImportCluster">
+    </form>
+</div>
+<div class="box">
+    <h3>Tweet Import</h3>
+    <form action="" method="post" enctype="multipart/form-data">
+        Number of Tweets:<br>
+        <input type="number" value="5" name="numOfTweets">
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="submit" value="ImportTweet" name="ImportTweet">
     </form>
 </div>
 
@@ -43,7 +52,7 @@ function twitter_encode($s){
 /**
  * Import csv data
  */
-if (isset($_POST["submit"])) {
+if (isset($_POST["ImportTweet"])) {
     if (isset($_FILES["fileToUpload"]["tmp_name"])) {
         echo "File: " . $_FILES["fileToUpload"]["name"] . ($_FILES["fileToUpload"]["size"] / 1024) . " Kb<br />";
         $filePath = $_FILES["fileToUpload"]["tmp_name"];
@@ -53,35 +62,28 @@ if (isset($_POST["submit"])) {
 
             if ($handle) {
 
-                $max = isset($_POST['numOfTweets'])?($_POST['numOfTweets']+1):100;
+                //$max = isset($_POST['numOfTweets'])?($_POST['numOfTweets']+1):100;
 
-                while (($line = fgets($handle)) !== false && $max > 0):
+                while (($line = fgets($handle)) !== false /*&& $max > 0*/):
                     $parts = preg_split("/[\t]/", $line);
-                    //die(print_r($parts));
-                    $max--;
+                    //$max--;
 
-                    $lola = substr($parts[4], 1 , -1);
-                    $lola = explode(", ", $lola);
                     ?>
-
                     <script type="text/javascript">
                         $.ajax({
                             url: 'api/Api.php',
                             data: {
                                 action: "addTweet",
-                                time: "<?php echo ($parts[0]); ?>",
-                                username: "<?php echo ($parts[1]); ?>",
-                                tweetId: "<?php echo ($parts[2]); ?>",
-                                content: "<?php echo addslashes($parts[3]); ?>",
-                                latitude: "<?php echo $lola[0]; ?>",
-                                longitude: "<?php echo $lola[1]; ?>",
-                                location: "<?php echo twitter_encode($parts[5]); ?>"
+                                tweetID: "<?php echo $parts[1]; ?>",
+                                kmeansID: "<?php echo $parts[0]; ?>",
+                                nmfID: "",
+                                lda_tfidfID: "",
+                                latitude: "<?php echo $parts[2]; ?>",
+                                longitude: "<?php echo $parts[3]; ?>",
+                                //text: "<?php //echo twitter_encode($parts[4]); ?>"
+                                text: ""
                             },
                             type: 'post'
-                            /*,success: function (output) {
-                                console.log(output);
-                            }
-                            */
                         });
                     </script>
 
@@ -89,15 +91,8 @@ if (isset($_POST["submit"])) {
                 endwhile;
 
                 fclose($handle);
-            } else {
-                info("Error opening the file.");
             }
-        } else {
-            info("Path wrong!");
         }
-
-    } else {
-        info("Can't read file.");
     }
 
 }

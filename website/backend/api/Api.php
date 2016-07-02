@@ -22,7 +22,13 @@ if(isset($_POST['action'])) {
             break;
 
         case 'addTweet':
-            add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+
+            add_tweet($_POST['tweetID'], $_POST['kmeansID'], $_POST['nmfID'], $_POST['lda_tfidfID'], $_POST['latitude'], $_POST['longitude'], $_POST['text']);
+            //add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+            break;
+
+        case 'addCluster':
+            //add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
             break;
     }
 
@@ -71,7 +77,8 @@ function database_setup() {
     global $db;
 
     $tweetTable = "CREATE TABLE Tweets (
-        tweetID INT(8) PRIMARY KEY,
+        id INT(8) PRIMARY KEY,
+        tweetID INT(8),
         kmeansID VARCHAR(30),
         nmfID VARCHAR(30),
         lda_tfidfID VARCHAR(30),
@@ -82,9 +89,9 @@ function database_setup() {
 
     $clusterTable = "CREATE TABLE Clusters (
         clusterID INT(8) PRIMARY KEY,
-        ctype INT (4),
+        type INT (4),
         terms VARCHAR(255) NOT NULL,
-        cdate VARCHAR(63) NOT NULL,
+        date VARCHAR(63) NOT NULL,
         country VARCHAR(63) NOT NULL
     )";
 
@@ -95,14 +102,15 @@ function database_setup() {
     echo $r==1?"OK":"FAILED";
 }
 
-function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
-
+function add_cluster($clusterID, $type, $terms, $date, $country){
     global $db;
-    //$db = check_db();
-    $timestamp = strtotime($time);
+    $insert = "INSERT INTO `clusters`(`clusterID`, `type`, `terms`, `date`, `country`) VALUES ('$clusterID', '$type', '$terms', '$date', '$country')";
+    $db -> query_bool($insert);
+}
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`tweetDd`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
-
+function add_tweet($tweetID, $kmeans, $nmf, $lda, $lat, $lng, $text){
+    global $db;
+    $insert = "INSERT INTO `tweets`(`tweetID`, `kmeansID`, `nmfID`, `lda_tfidfID`, `latitude`, `longitude`, `text`) VALUES ('$tweetID', '$kmeans','$nmf', '$lda', '$lat', '$lng', '$text')";
     $db -> query_bool($insert);
 }
 

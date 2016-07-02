@@ -13,9 +13,13 @@
     <button onclick="RemoveDB();">Remove DB</button>
 </div>
 <div class="box">
-    <h3>File Import</h3>
+    <h3>Tweet Import</h3>
     <form action="" method="post" enctype="multipart/form-data">
-        Number of Tweets:<br>
+        Number of Rows:<br>
+        <select name="type">
+          <option value="tweets">Tweets</option>
+          <option value="clusters">Clusters</option>
+        </select>
         <input type="number" value="30" name="numOfTweets">
         <input type="file" name="fileToUpload" id="fileToUpload">
         <input type="submit" value="Import" name="submit">
@@ -53,38 +57,69 @@ if (isset($_POST["submit"])) {
 
             if ($handle) {
 
-                $algo = explode( '_', $_FILES["fileToUpload"]["name"])[0];
-
                 $max = isset($_POST['numOfTweets'])?($_POST['numOfTweets']+1):100;
 
+                //while (($line = fgets($handle)) !== false && $max > 0):
                 while (($line = fgets($handle)) !== false && $max > 0):
                     $parts = preg_split("/[\t]/", $line);
                     //die(print_r($parts));
                     $max--;
 
-                    ?>
+                    if($_POST['type']=="clusters") {
+                        $algo = explode( '_cluster', $_FILES["fileToUpload"]["name"])[0];
+                        $country = trim( str_replace( PHP_EOL, '', $parts[3]));
+                        ?>
+                            <script type="text/javascript">
+                                console.log('test');
+                                 $.ajax({
+                                     url: 'api/Api.php',
+                                     data: {
+                                         action: "addCluster",
+                                         id: "<?php echo ($parts[0]); ?>",
+                                         type: "<?php echo $algo; ?>",
+                                         terms: "<?php echo ($parts[1]); ?>",
+                                         day: "<?php echo ($parts[2]); ?>",
+                                         country: "<?php echo $country; ?>"
+                                     },
+                                     type: 'post'
+                                     /*,success: function (output) {
+                                         console.log(output);
+                                     }
+                                     */
+                                 });
+                            </script>
 
-                    <script type="text/javascript">
-                        $.ajax({
-                            url: 'api/Api.php',
-                            data: {
-                                action: "addTweet",
-                                id: "<?php echo ($parts[1]); ?>",
-                                cluster_ID: "<?php echo ($parts[0]); ?>",
-                                latitude: "<?php echo ($parts[2]); ?>",
-                                longitude: "<?php echo ($parts[3]); ?>",
-                                text: "<?php echo twitter_encode($parts[4]); ?>",
-                                algo: "<?php echo $algo; ?>"
-                            },
-                            type: 'post'
-                            /*,success: function (output) {
-                                console.log(output);
-                            }
-                            */
-                        });
-                    </script>
+                        <?php
+                    }
 
-                    <?php
+                    if($_POST['type']=="tweets") {
+
+                        $algo = explode( '_ids', $_FILES["fileToUpload"]["name"])[0];
+                        ?>
+
+                            <script type="text/javascript">
+                                $.ajax({
+                                    url: 'api/Api.php',
+                                    data: {
+                                        action: "addTweet",
+                                        id: "<?php echo ($parts[1]); ?>",
+                                        cluster_ID: "<?php echo ($parts[0]); ?>",
+                                        latitude: "<?php echo ($parts[2]); ?>",
+                                        longitude: "<?php echo ($parts[3]); ?>",
+                                        text: "<?php echo twitter_encode($parts[4]); ?>",
+                                        algo: "<?php echo $algo; ?>"
+                                    },
+                                    type: 'post'
+                                    /*,success: function (output) {
+                                        console.log(output);
+                                    }
+                                    */
+                                });
+                            </script>
+
+                        <?php
+                    }
+
                 endwhile;
 
                 fclose($handle);

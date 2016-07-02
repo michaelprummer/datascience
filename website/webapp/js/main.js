@@ -479,7 +479,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 return selectedClusterType;
             }
 
-            $('input[name=optradio]:checked', '#alg-option form').on("select", function() {
+            $('input[name=optradio]').on("click", function() {
                 selectedClusterType = $('input[name=optradio]:checked', '#alg-option form').val();
                 getClusters();
             });

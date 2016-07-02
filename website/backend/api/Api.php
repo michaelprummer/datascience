@@ -70,7 +70,7 @@ function database_setup() {
     global $db;
 
     $tweetTable = "CREATE TABLE Tweets (
-        tweetID INT(8),
+        tweetID BIGINT(20),
         kmeansID VARCHAR(30),
         nmfID VARCHAR(30),
         lda_tfidfID VARCHAR(30),

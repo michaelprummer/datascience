@@ -22,7 +22,7 @@ if(isset($_POST['action'])) {
             break;
 
         case 'addTweet':
-            add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+            add_tweet($_POST['id'], $_POST['cluster_ID'], $_POST['latitude'],$_POST['longitude'], $_POST['text'], $_POST['algo']);
             break;
     }
 
@@ -71,30 +71,29 @@ function database_setup() {
 
     global $db;
 
-    $table = "CREATE TABLE Tweets (
-        id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        time int(10),
-        username VARCHAR(30) NOT NULL,
-        twitter_id VARCHAR(30) NOT NULL,
-        content VARCHAR(255),
+    $table = "CREATE TABLE Tweets1 (
+        id INT(6) UNSIGNED PRIMARY KEY,
+        kmeans_ID int(6),
+        nmf_ID int(6),
         latitude DECIMAL(10, 8) NOT NULL,
-        longitude  DECIMAL(11, 8) NOT NULL,
-        location VARCHAR(30)
+        longitude DECIMAL(10, 8) NOT NULL,
+        text VARCHAR(255)
     )";
 
     $r = $db -> query_bool($table);
     echo $r==1?"OK":"FAILED";
 }
 
-function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
+function add_tweet($id, $cluster_ID, $latitude, $longitude, $text, $algo){
 
     global $db;
     //$db = check_db();
-    $timestamp = strtotime($time);
+    //$timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`id`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
-
-    $db -> query_bool($insert);
+    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets1` (`id`, `".$algo."_ID`,`latitude`, `longitude`, `text`) VALUES ('$id', '$cluster_ID', '$latitude', '$longitude', '$text');";
+    echo $insert;
+    $r = $db -> query_bool($insert);
+    echo $r==1?"OK":"FAILED";
 }
 
 

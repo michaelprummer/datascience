@@ -53,6 +53,8 @@ if (isset($_POST["submit"])) {
 
             if ($handle) {
 
+                $algo = "kmeans";
+
                 $max = isset($_POST['numOfTweets'])?($_POST['numOfTweets']+1):100;
 
                 while (($line = fgets($handle)) !== false && $max > 0):
@@ -60,8 +62,6 @@ if (isset($_POST["submit"])) {
                     //die(print_r($parts));
                     $max--;
 
-                    $lola = substr($parts[4], 1 , -1);
-                    $lola = explode(", ", $lola);
                     ?>
 
                     <script type="text/javascript">
@@ -69,13 +69,12 @@ if (isset($_POST["submit"])) {
                             url: 'api/Api.php',
                             data: {
                                 action: "addTweet",
-                                time: "<?php echo ($parts[0]); ?>",
-                                username: "<?php echo ($parts[1]); ?>",
-                                tweetId: "<?php echo ($parts[2]); ?>",
-                                content: "<?php echo addslashes($parts[3]); ?>",
-                                latitude: "<?php echo $lola[0]; ?>",
-                                longitude: "<?php echo $lola[1]; ?>",
-                                location: "<?php echo twitter_encode($parts[5]); ?>"
+                                id: "<?php echo ($parts[1]); ?>",
+                                cluster_ID: "<?php echo ($parts[0]); ?>",
+                                latitude: "<?php echo ($parts[2]); ?>",
+                                longitude: "<?php echo ($parts[3]); ?>",
+                                text: "<?php echo twitter_encode($parts[4]); ?>",
+                                algo: "<?php echo $algo; ?>"
                             },
                             type: 'post'
                             /*,success: function (output) {

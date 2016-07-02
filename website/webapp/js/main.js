@@ -205,26 +205,28 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .data(locationGeoJson.features)
                     .enter().append("path")
                     .attr("d", path.pointRadius(1 * map.getZoom()))
-                    .style("fill", selectedColor)
                     .on("click", function (d) {
                         OpenInNewTab("https://twitter.com/statuses/" + d.properties.text)
                     })
                     .on("mouseover", function (d) {
                         d3.select(this).style("fill", "#2c3e50");
-                        tooltip.fadeOut(100, function () {
-                            // Popup content
-                            tooltip.select('p').html(d.properties.text);
-                            $("#example-tweet").fadeIn(100);
-                        });
-                        tooltip.css({
-                            "left": d3.event.pageX + 20,
-                            "top": d3.event.pageY
-                        });
+                        if(d.properties.text.length > 5){
+                            tooltip.fadeOut(100, function () {
+                                // Popup content
+                                tooltip.select('p').html(d.properties.text);
+                                $("#example-tweet").fadeIn(100);
+                            });
+                            tooltip.css({
+                                "left": d3.event.pageX + 20,
+                                "top": d3.event.pageY
+                            });
+                        }
                     }).
                     on("mouseout", function () {
                         d3.select(this).style("fill", selectedColor);
                         tooltip.fadeOut(50);
-                    });
+                    })
+                    .style("fill", selectedColor);
             }
 
             function OpenInNewTab(url) {

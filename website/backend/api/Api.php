@@ -72,7 +72,7 @@ function database_setup() {
     global $db;
 
     $table = "CREATE TABLE Tweets1 (
-        id INT(6) UNSIGNED PRIMARY KEY,
+        id BIGINT(20) UNSIGNED PRIMARY KEY,
         kmeans_ID int(6),
         nmf_ID int(6),
         latitude DECIMAL(10, 8) NOT NULL,

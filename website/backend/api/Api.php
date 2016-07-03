@@ -39,7 +39,7 @@ if(isset($_POST['action'])) {
             break;
 
         case 'addTweet':
-            add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+            //add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
             break;
     }
 
@@ -110,9 +110,8 @@ function database_setup() {
 
     echo $r==1?"OK":"FAILED";
 }
-
+/*
 function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
-
     global $db;
     //$db = check_db();
     $timestamp = strtotime($time);
@@ -121,7 +120,7 @@ function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $loc
 
     $db -> query_bool($insert);
 }
-
+*/
 
 function get_clusters($location, $date, $algo){
 
@@ -159,26 +158,26 @@ function get_tweets($algo, $clusterID){
     $result = $db -> query($query);
 
     if (sizeof($result) > 0) {
-        $arr = [];
-        $inc = 0;
+        $tweet_arr = [];
+        $i = 0;
 
         foreach ($result as $row) {
-            $jsonArrayObject = (array(
-            'type' => 'Feature',
-            'geometry'=>array(
-                'type'=>'Point',
-                'coordinates' => array($row->longitude, $row->latitude)
+            $tweet_arr[$i] = array(
+                'type' => 'Feature',
+                'geometry'=>array(
+                    'type'=>'Point',
+                    'coordinates' => array($row->longitude, $row->latitude)
                 ),
-            'properties'=> array(
-                'text'=> $row->text,
-                'id'=>$row->tweetID
-                )
-            ));
-            $arr[$inc] = $jsonArrayObject;
-            $inc++;
+                'properties'=> array(
+                    'text'=> utf8_encode($row->text),
+                    'id'=>$row->tweetID
+                ),
+            );
+
+            $i++;
         }
-        $json_array = json_encode($arr);
-        echo $json_array;
+
+        echo json_encode($tweet_arr);
     }
     else{
         echo "0 results";

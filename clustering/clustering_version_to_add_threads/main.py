@@ -3,13 +3,44 @@ from __future__ import print_function
 from time import time
 from clustering import Clustering
 from frequencies import Frequencies
-from preprocessing import Preprocessing
+from multiprocessing import Process, Manager, Lock
+from multiprocessing.sharedctypes import Value
 from geo_locations import Geo
 import os, numpy, re, codecs
 from sklearn import metrics
 
+
+def job(job_data, number_of_clusters, shared_val):
+    for j in job_data:
+        country = j[0]
+        country_specific_tweets = j[1]
+        relevant_tweet_ids = j[2]
+        cl = j[3]
+
+        print("Clustering for " + country + " (" + str(len(relevant_tweet_ids)) + " Tweets)")
+        t0 = time()
+        print()
+
+        # NMF
+        name, parameters, top10, clusters = cl.applyNMF(number_of_clusters, country_specific_tweets)
+        shared_val[0] = [name, country, top10, clusters, relevant_tweet_ids]
+
+        # LDA tfidf
+        name, parameters, top10, clusters = cl.applyLDA2(number_of_clusters, country_specific_tweets)
+        shared_val[1] = [name, country, top10, clusters, relevant_tweet_ids]
+
+        # Kmeans++
+        # Takes soooo long
+        #name, parameters, top10, clusters = cl.applyKmeans_plus(number_of_clusters, country_specific_tweets)
+
+        print("done in %0.3fs" % (time() - t0))
+
+
+
+
+
 class MainProgram():
-    
+
     def __init__(self, path="data/", special_files=None, limit=None, number_of_clusters=10,out_path="/", threshold=100):
         self.path = path
         self.special_files = special_files
@@ -22,9 +53,9 @@ class MainProgram():
         self.cluster_out_file = codecs.open(self.out_path + "cluster_terms.txt", "w", "utf-8")
         self.id_out_file = codecs.open(self.out_path + "ids.txt", "w", "utf-8")
         
-        self.startProcess()           
+        self.startProcess()
 
-    def startProcess(self):    
+    def startProcess(self):
         
         if self.special_files:
             files = self.special_files
@@ -32,7 +63,6 @@ class MainProgram():
             files = os.listdir(self.path)
             
         for file in files:
-
             self.startCountrySpecificClustering(file)
         
         self.cluster_out_file.close()
@@ -55,10 +85,19 @@ class MainProgram():
         
         # decide if results are printed on stdout (top terms and how many tweets are in one cluster).
         cl = Clustering(results=False)
-        
+
+        processes = []
+
+        jobs = []
+        countryJobs = []
+
+
+
+        p_shared_vals = []
+        m = Manager()
+
         for country in country_map.keys():
             country_specific_tweets = []
-            
             relevant_tweet_ids = country_map[country]
             #self.info_out.write(country + "\t" + str(len(relevant_tweets_ids)) + "\n")
             
@@ -67,52 +106,66 @@ class MainProgram():
                 country_specific_tweets.append(data[relevant_tweet_id][2])
             
             if len(relevant_tweet_ids) > self.threshold:
-                                   
-                print("Clustering for " + country + " (" + str(len(relevant_tweet_ids)) + " Tweets)")
-                t0 = time()
-                print()
-                                
-                # NMF
-                name, parameters, top10, clusters = cl.applyNMF(self.number_of_clusters, country_specific_tweets)    
-                self.printResults(name, country, top10, clusters, relevant_tweet_ids, data, file)
+                countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
-                # LDA tfidf
-                name, parameters, top10, clusters = cl.applyLDA2(self.number_of_clusters, country_specific_tweets)
-                self.printResults(name, country, top10, clusters, relevant_tweet_ids, data, file)
-  
-                # Kmeans++
-                name, parameters, top10, clusters = cl.applyKmeans_plus(self.number_of_clusters, country_specific_tweets)
-                self.printResults(name, country, top10, clusters, relevant_tweet_ids, data, file)
-                
-                print()
-                print("done in %0.3fs" % (time() - t0))
-            
-            
-                
+        #numOfProcesses = len(countryJobs)
+        numOfProcesses = 12
+
+        print("Processes: " + str(numOfProcesses))
+        for k, job_data in enumerate(countryJobs, 1):
+            index = k % numOfProcesses
+            if not len(jobs) > index:
+                jobs.append([job_data])
+            else:
+                jobs[index].append(job_data)
+
+        for i, j in enumerate(jobs, 0):
+            p_shared_vals.append(
+                m.list([[], []])
+            )
+
+            p = Process(target=job, args=([j, self.number_of_clusters, p_shared_vals[i]]))
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
+
+        #name, parameters, top10, clusters
+        for sharedObj in p_shared_vals:
+            nmf = sharedObj[0]
+            lda = sharedObj[1]
+            #print(nmf[1])
+            self.printResults(nmf[0], nmf[1], nmf[2], nmf[3], nmf[4], data, file)
+            #self.printResults(name, country, top10, clusters, relevant_tweet_ids, data, file)
+            self.printResults(lda[0], lda[1], lda[2], lda[3], nmf[4], data, file)
+
+
     def printResults(self, name, country, top10, clusters, relevant_tweet_ids, data, filename):
         nmf = str(-1)
         lda = str(-1)
         kmeans = str(-1)
-        
+
         if len(clusters) != len(relevant_tweet_ids):
             print("Geclusterte Tweets:" + str(len(clusters)))
-            print("Gesuchte Tweets:" + str(len(relevant_tweet_ids)))                    
+            print("Gesuchte Tweets:" + str(len(relevant_tweet_ids)))
             print("ERROR: Clustered Tweets not equal to read tweets")
+
         else:
             clusterID_mapping = dict()
             for i in range(self.number_of_clusters):
                 clusterID_mapping[i] = self.cluster_ID
-                self.cluster_ID+=1
-            
-            
+                self.cluster_ID += 1
+
             # write file with top terms: cluster_id    term    datum    land
             date = filename[:-4]
             for top in top10.keys():
-                self.cluster_out_file.write(str(clusterID_mapping[top]) + "\t" + name + "\t" + " ".join(top10[top]) + "\t" + date + "\t" + country + "\n")
-            
-            # write file with cluster-tweet mapping: cluster_id    latitude    longitude    tweet text           
+                self.cluster_out_file.write(str(clusterID_mapping[top]) + "\t" + name + "\t" + " ".join(
+                    top10[top]) + "\t" + date + "\t" + country + "\n")
+
+            # write file with cluster-tweet mapping: cluster_id    latitude    longitude    tweet text
             for i in range(len(relevant_tweet_ids)):
-                tweet_id = relevant_tweet_ids[i]    
+                tweet_id = relevant_tweet_ids[i]
                 geo1, geo2 = tuple((data[tweet_id][0]).split(","))
                 tweet_text = data[tweet_id][3].decode("utf-8")
                 id = data[tweet_id][4]
@@ -126,7 +179,7 @@ class MainProgram():
                 else:
                     print("ERROR cluster name")
                     exit()
-                    
+
                 self.id_out_file.write(id + "\t")
                 self.id_out_file.write(nmf + "\t")
                 self.id_out_file.write(lda + "\t")
@@ -135,22 +188,20 @@ class MainProgram():
                 self.id_out_file.write(geo2 + "\t")
                 self.id_out_file.write(tweet_text + "\n")
 
-
-
               
 
 if __name__ == "__main__":
     begin = time()
 
-    path = "C:/Users/Jennifer/Documents/data/ab_sept/"
+    path = "data/"
     limit = None
     special_files = None #["20151126.csv"]
     number_of_clusters = 3
-    output_path="C:/test/"
-        
+    output_path = "out/"
+
     threshold = 100 # country must have enough tweets for clustering
     
-    main = MainProgram(path,special_files, limit, number_of_clusters, output_path, threshold)
+    main = MainProgram(path, special_files, limit, number_of_clusters, output_path, threshold)
     
-    print("Whole programm needed %0.3fs" % (time() - begin))
+    print("Whole program needed %0.3fs" % (time() - begin))
 

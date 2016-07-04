@@ -2,6 +2,8 @@ from __future__ import print_function
 import numpy
 from time import time
 from preprocessing import Preprocessing
+from multiprocessing import Process, Manager, Lock
+from multiprocessing.sharedctypes import Value
 import re, codecs
 from clustering import Clustering
 
@@ -25,7 +27,7 @@ class Geo():
         print("Loading data from " + path, end=" - ")
         t0 = time()
         
-        data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,4,3,3,0], comments=None)
+        data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,5,3,3,0], comments=None)
         print("done in %0.3fs" % (time() - t0))
 
         print("Preprocessing tweet texts", end=" - ")

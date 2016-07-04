@@ -205,7 +205,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .enter().append("path")
                     .attr("d", path.pointRadius(1 * map.getZoom()))
                     .on("click", function (d) {
-                        console.log(d);
                         OpenInNewTab("https://twitter.com/statuses/" + d.properties.id)
                     })
                     .on("mouseover", function (d) {
@@ -244,10 +243,10 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .filter(function(d) { return state_id == d.id;  })
                     .attr('class', 'active');
 
-                if (state_name==='Russia'){
-                  state_name ="Russian Federation";
-                }
-                selectedCountry = state_name;
+                //if (state_name==='Russia'){
+                //  state_name ="Russian Federation";
+                //}
+                selectedCountry = state_id;
                 //date = picker.getDate();
                 setCenter(selectedCountry);
                 

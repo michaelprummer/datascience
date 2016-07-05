@@ -105,11 +105,12 @@ class MainProgram():
             if len(relevant_tweet_ids) > self.threshold:
                 countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
-        #numOfProcesses = len(countryJobs)
-        numOfProcesses = 12
+        numOfProcesses = len(countryJobs)/2
+        #numOfProcesses = 12
 
-        print("Processes: " + str(numOfProcesses))
-        for k, job_data in enumerate(countryJobs, 1):
+        print("NumOfProcesses: " + str(numOfProcesses))
+
+        for k, job_data in enumerate(countryJobs, 0):
             index = k % numOfProcesses
             if not len(jobs) > index:
                 jobs.append([job_data])
@@ -199,7 +200,7 @@ if __name__ == "__main__":
     path = "data/"
     limit = None
     special_files = None #["20151126.csv"]
-    number_of_clusters = 10
+    number_of_clusters = 20
     output_path = "out/"
 
     threshold = 100 # country must have enough tweets for clustering

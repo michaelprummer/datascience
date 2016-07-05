@@ -30,8 +30,8 @@ def job(job_data, number_of_clusters, shared_val):
         shared_val[1] = [name, country, top10, clusters, relevant_tweet_ids]
 
         # Kmeans++
-        #name, parameters, top10, clusters = cl.applyKmeans_plus(number_of_clusters, country_specific_tweets)
-        #shared_val[2] = [name, country, top10, clusters, relevant_tweet_ids]
+        name, parameters, top10, clusters = cl.applyKmeansMiniBatch(number_of_clusters, country_specific_tweets)
+        shared_val[2] = [name, country, top10, clusters, relevant_tweet_ids]
 
         print("done in %0.3fs" % (time() - t0))
 
@@ -136,12 +136,12 @@ class MainProgram():
         for sharedObj in p_shared_vals:
             nmf = sharedObj[0]
             lda = sharedObj[1]
-            #kmeans = sharedObj[2]
+            kmeans = sharedObj[2]
 
             #print(nmf[1])
             self.printResults(nmf[0], nmf[1], nmf[2], nmf[3], nmf[4], data, file)
             self.printResults(lda[0], lda[1], lda[2], lda[3], nmf[4], data, file)
-            #self.printResults(kmeans[0], kmeans[1], kmeans[2], kmeans[3], kmeans[4], data, file)
+            self.printResults(kmeans[0], kmeans[1], kmeans[2], kmeans[3], kmeans[4], data, file)
 
 
     def printResults(self, name, country, top10, clusters, relevant_tweet_ids, data, filename):

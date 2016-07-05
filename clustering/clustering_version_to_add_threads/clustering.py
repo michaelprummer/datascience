@@ -27,6 +27,7 @@ class Clustering():
         self.results = results
                     
     def extractFeatures(self, data, tf=False):
+                
         tfidf_training_matrix, tfidf_terms = self.useTfidfVectorizer(data)
         
         if tf:
@@ -103,27 +104,28 @@ class Clustering():
         return name, parameters, top10, labels
 
 
-    def applyKmeans_plus(self, number_of_clusters, country_specific_tweets):
+    def applyKmeansMiniBatch(self, number_of_clusters, country_specific_tweets):
         train, feature_names = self.extractFeatures(country_specific_tweets,False)
         
         name = "kmeans"
         if self.results:
             print("Performing dimensionality reduction using LSA")
         t0 = time()
+        
         # Vectorizer results are normalized, which makes KMeans behave as
         # spherical k-means for better results. Since LSA/SVD results are
         # not normalized, we have to redo the normalization.
         
-        svd = TruncatedSVD(len(feature_names)-1)
-        normalizer = Normalizer(copy=False)
-        lsa = make_pipeline(svd, normalizer)
-    
-        train = lsa.fit_transform(train)
+        #svd = TruncatedSVD(len(feature_names)-1)
+        #normalizer = Normalizer(copy=False)
+        #lsa = make_pipeline(svd, normalizer)
+        #print(train.toarray())
+        #train = lsa.fit_transform(train)
         
         if self.results:
             print("done in %fs" % (time() - t0))
     
-        explained_variance = svd.explained_variance_ratio_.sum()
+        # explained_variance = svd.explained_variance_ratio_.sum()
         #print("Explained variance of the SVD step: {}%".format(int(explained_variance * 100)))
     
         #print()
@@ -131,7 +133,7 @@ class Clustering():
             print("Clustering sparse data", end=" - ")                 
         t0 = time()
         
-        km = KMeans(n_clusters=number_of_clusters, init='k-means++', max_iter=150, verbose=False)
+        km = MiniBatchKMeans(n_clusters=number_of_clusters, init='k-means++',init_size=1000,batch_size=1000, verbose=False)
 
         km.fit(train)
         if self.results:
@@ -140,10 +142,11 @@ class Clustering():
         parameters = km.get_params()
         labels = km.labels_
         # without SVD:
-        #order_centroids = km.cluster_centers_.argsort()[:, ::-1]
+        order_centroids = km.cluster_centers_.argsort()[:, ::-1]
+        
         # using SVD:
-        original_space_centroids = svd.inverse_transform(km.cluster_centers_)
-        order_centroids = original_space_centroids.argsort()[:, ::-1]
+        #original_space_centroids = svd.inverse_transform(km.cluster_centers_)
+        #order_centroids = original_space_centroids.argsort()[:, ::-1]
         top10 = self.printKMeansCluster(number_of_clusters, labels, order_centroids, feature_names)
         
         if self.results:
@@ -214,17 +217,36 @@ class Clustering():
             print()
             print("Extracting features from the training dataset using a sparse vectorizer", end=" - ")
         t0 = time()
-        vectorizer = TfidfVectorizer(max_df=0.5, max_features=10000,
-                                     min_df=2, stop_words='english',norm='l2',
-                                     use_idf=True, sublinear_tf=False,encoding='utf-8')
+    
+        vectorizer = TfidfVectorizer(max_features=10000, stop_words='english',norm='l2',use_idf=True, sublinear_tf=False,encoding='utf-8')
         matrix = vectorizer.fit_transform(data)
+        
         if self.results:
             print("done in %0.3fs" % (time() - t0))
             print("n_samples: %0.3d, n_features: %d" % matrix.shape)
             print()
         
         feature_names = vectorizer.get_feature_names()
-
+        return matrix, feature_names
+    
+    
+    def useTfidfTransformer(self, data):
+        if self.results:
+            print()
+            print("Extracting features from the training dataset using a sparse vectorizer", end=" - ")
+        t0 = time()
+        # include counter to generate count matrix
+        count_vectorizer = CountVectorizer(stop_words='english')
+        count_matrix = count_vectorizer.fit_transform(data)
+        vectorizer = TfidfTransformer(norm='l2', use_idf=True, smooth_idf=True, sublinear_tf=False)
+        matrix = vectorizer.fit_transform(count_matrix)
+        if self.results:
+            print("done in %0.3fs" % (time() - t0))
+            print("n_samples: %d, n_features: %d" % matrix.shape)
+            print()
+        
+        feature_names = count_vectorizer.get_feature_names()
+        
         return matrix, feature_names
     
 

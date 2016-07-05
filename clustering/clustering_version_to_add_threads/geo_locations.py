@@ -2,8 +2,6 @@ from __future__ import print_function
 import numpy
 from time import time
 from preprocessing import Preprocessing
-from multiprocessing import Process, Manager, Lock
-from multiprocessing.sharedctypes import Value
 import re, codecs
 from clustering import Clustering
 
@@ -27,19 +25,27 @@ class Geo():
         print("Loading data from " + path, end=" - ")
         t0 = time()
         
+        #data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,5,6,6,0], comments=None)
         data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,5,3,3,0], comments=None)
+
         print("done in %0.3fs" % (time() - t0))
 
         print("Preprocessing tweet texts", end=" - ")
         t0 = time()
-                    
+        empty_row = []      
         for i in range(len(data)):
             
             counter+=1
+            
             tweet = self.pp.preprocess_tweet(data[i][2])
             data[i][2] = tweet
-                
+            if tweet == "":
+                empty_row.append(i)
             if limit and counter >= limit:
+                if len(empty_row) > 1:
+                    empty_row.sort(reverse=True)
+                for id in empty_row:
+                    data = numpy.delete(data, (id), axis=0)
                 print("done in %0.3fs" % (time() - t0))
                 print()
 
@@ -47,7 +53,11 @@ class Geo():
             
         print("done in %0.3fs" % (time() - t0))
         print()
+        if len(empty_row) > 1:
+            empty_row.sort(reverse=True)
 
+        for id in empty_row:
+            data = numpy.delete(data, (id), axis=0)
         return data
     
     def country_mapping(self, data):

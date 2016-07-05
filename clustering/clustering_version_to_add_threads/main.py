@@ -30,8 +30,8 @@ def job(job_data, number_of_clusters, shared_val):
         shared_val[1] = [name, country, top10, clusters, relevant_tweet_ids]
 
         # Kmeans++
-        # Takes soooo long
         #name, parameters, top10, clusters = cl.applyKmeans_plus(number_of_clusters, country_specific_tweets)
+        #shared_val[2] = [name, country, top10, clusters, relevant_tweet_ids]
 
         print("done in %0.3fs" % (time() - t0))
 
@@ -86,13 +86,10 @@ class MainProgram():
         # decide if results are printed on stdout (top terms and how many tweets are in one cluster).
         cl = Clustering(results=False)
 
+        # Processes
         processes = []
-
         jobs = []
         countryJobs = []
-
-
-
         p_shared_vals = []
         m = Manager()
 
@@ -121,7 +118,11 @@ class MainProgram():
 
         for i, j in enumerate(jobs, 0):
             p_shared_vals.append(
-                m.list([[], []])
+                m.list([
+                    [],
+                    [],
+                    #[]
+                ])
             )
 
             p = Process(target=job, args=([j, self.number_of_clusters, p_shared_vals[i]]))
@@ -135,10 +136,12 @@ class MainProgram():
         for sharedObj in p_shared_vals:
             nmf = sharedObj[0]
             lda = sharedObj[1]
+            #kmeans = sharedObj[2]
+
             #print(nmf[1])
             self.printResults(nmf[0], nmf[1], nmf[2], nmf[3], nmf[4], data, file)
-            #self.printResults(name, country, top10, clusters, relevant_tweet_ids, data, file)
             self.printResults(lda[0], lda[1], lda[2], lda[3], nmf[4], data, file)
+            #self.printResults(kmeans[0], kmeans[1], kmeans[2], kmeans[3], kmeans[4], data, file)
 
 
     def printResults(self, name, country, top10, clusters, relevant_tweet_ids, data, filename):
@@ -196,7 +199,7 @@ if __name__ == "__main__":
     path = "data/"
     limit = None
     special_files = None #["20151126.csv"]
-    number_of_clusters = 3
+    number_of_clusters = 10
     output_path = "out/"
 
     threshold = 100 # country must have enough tweets for clustering

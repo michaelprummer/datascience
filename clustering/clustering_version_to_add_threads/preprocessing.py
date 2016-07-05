@@ -47,7 +47,6 @@ class Preprocessing():
         return tweets                 
 
     def preprocess_tweet(self, tweet):
-        print(tweet)
         tweet = tweet.decode(encoding="utf-8")
         
         tweet = self.tok.tokenize(tweet)
@@ -89,6 +88,5 @@ class Preprocessing():
             if token:
                 preprocessed_tweet += token + " "
         preprocessed_tweet = preprocessed_tweet.strip().encode("utf-8")
-        print(preprocessed_tweet)
-        print()
+
         return preprocessed_tweet

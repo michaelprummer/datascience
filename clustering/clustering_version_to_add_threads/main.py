@@ -105,8 +105,8 @@ class MainProgram():
             if len(relevant_tweet_ids) > self.threshold:
                 countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
-        numOfProcesses = len(countryJobs)/2
-        #numOfProcesses = 12
+        #numOfProcesses = len(countryJobs)/2
+        numOfProcesses = 12
 
         print("NumOfProcesses: " + str(numOfProcesses))
 

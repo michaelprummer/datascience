@@ -45,7 +45,9 @@ function info($t){
  */
 function twitter_encode($s){
     return trim(preg_replace('/ +/', ' ', preg_replace('/[^A-Za-z0-9 ]/', ' ', urldecode(html_entity_decode(strip_tags($s))))));
-    //return addslashes($s);
+    //$s = str_replace('"', '', $s);
+    //$s = str_replace('\'', '', $s);
+    //return utf8_encode($s);
     ///utf8_encode
 }
 
@@ -74,14 +76,13 @@ if (isset($_POST["ImportTweet"])) {
                             url: 'api/Api.php',
                             data: {
                                 action: "addTweet",
-                                tweetID: "<?php echo $parts[1]; ?>",
-                                kmeansID: "<?php echo $parts[0]; ?>",
-                                nmfID: "",
-                                lda_tfidfID: "",
-                                latitude: "<?php echo $parts[2]; ?>",
-                                longitude: "<?php echo $parts[3]; ?>",
-                                //text: "<?php //echo twitter_encode($parts[4]); ?>"
-                                text: ""
+                                    tweetID: "<?php echo $parts[0]; ?>",
+                                    nmfID: "<?php echo $parts[1]; ?>",
+                                    ldaID: "<?php echo $parts[2]; ?>",
+                                    kmeansID: "<?php echo $parts[3]; ?>",
+                                    longitude: "<?php echo $parts[4]; ?>",
+                                     latitude: "<?php echo $parts[5]; ?>",
+                                    tweettext: "<?php echo twitter_encode($parts[6]); ?>",
                             },
                             type: 'post'
                         });

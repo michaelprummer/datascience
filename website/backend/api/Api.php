@@ -39,7 +39,14 @@ if(isset($_POST['action'])) {
             break;
 
         case 'addTweet':
-            //add_tweet($_POST['time'], $_POST['username'], $_POST['tweetId'], $_POST['content'],$_POST['latitude'], $_POST['longitude'],$_POST['location']);
+            add_tweet(
+                $_POST['tweetID'],
+                $_POST['nmfID'],
+                $_POST['ldaID'],
+                $_POST['kmeansID'],
+                $_POST['longitude'],
+                $_POST['latitude'],
+                $_POST['tweettext']);
             break;
     }
 
@@ -110,17 +117,17 @@ function database_setup() {
 
     echo $r==1?"OK":"FAILED";
 }
-/*
-function add_tweet($time, $username, $tID, $content, $latitude, $longitude, $location){
+//596067684011397121	0	-1	-1	48.815616	 2.379703	"@SneakersAddict_: Nike Air Max 90 Hyperfuse â€˜Independence Dayâ€™ Red http://t.co/wFkPtOnTC3"
+function add_tweet($tweetID, $nmfID, $ldaID, $kmeansID, $longitude, $latitude, $tweettext){
     global $db;
-    //$db = check_db();
-    $timestamp = strtotime($time);
 
-    $insert = "INSERT INTO `" . DB_NAME . "`.`tweets` (`tweetId`, `time`, `username`, `twitter_id`, `content`, `latitude`, `longitude`, `location`) VALUES (NULL, '$timestamp', '$username', '$tID', '$content', '$latitude', '$longitude', '$location');";
+    // INSERT INTO `tweets`(`tweetID`, `nmfID`, `ldaID`, `kmeansID`, `latitude`, `longitude`, `text`) VALUES ([value-1],[value-2],[value-3],[value-4],[value-5],[value-6],[value-7])
+    //die($tweetID . " | " .  $nmfID . " | " . $ldaID . " | " . $kmeansID . " | " . $longitude . " | " . $latitude . " | " . $tweettext);
 
+    $insert = "INSERT INTO `tweets`(`tweetID`, `nmfID`, `ldaID`, `kmeansID`, `latitude`, `longitude`, `text`) VALUES ($tweetID, $nmfID, $ldaID, $kmeansID, $longitude, $latitude, '$tweettext')";
     $db -> query_bool($insert);
 }
-*/
+
 
 function get_clusters($location, $date, $algo){
 

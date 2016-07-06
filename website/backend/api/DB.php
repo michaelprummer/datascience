@@ -30,6 +30,7 @@ if ( !class_exists( 'DB' ) ) {
 
         public function query_bool($query) {
             $db = $this->connect();
+
             return $db->query($query);
         }
 

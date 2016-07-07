@@ -447,6 +447,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function getLocations(clusterID) {
+                locationGeoJson =  {type: 'FeatureCollection', features: [] };
+
                 $.ajax({
                     type: "GET",
                     dataType: "json",

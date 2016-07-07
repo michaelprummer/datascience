@@ -263,14 +263,27 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             // create date picker
             var picker = new Pikaday({
                 field: document.getElementById('date'),
-                minDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
-                maxDate: moment("31-12-2015", "DD-MM-YYYY").toDate(),
-                defaultDate: moment("01-01-2015", "DD-MM-YYYY").toDate(),
+                minDate: moment("25-05-2015", "DD-MM-YYYY").toDate(),
+                maxDate: moment("30-11-2015", "DD-MM-YYYY").toDate(),
+                defaultDate: moment("25-05-2015", "DD-MM-YYYY").toDate(),
                 setDefaultDate: true,
                 firstDay: 1,
                 format: 'D-M-YYYY',
                 bound: false,
                 container: document.getElementById('date-picker'),
+                disableDayFn: function(dateTime){
+
+                    if(new Date(2015, 4, 31) < dateTime) {
+                        //console.log(dateTime)
+
+                        if(new Date(2015, 9, 31) < dateTime) {
+                            return false
+                        } else {
+                            return true
+                        }
+                    }
+
+                },
                 onSelect: function () {
                     date = moment(picker.getDate()).format('YYYYMMDD');
                     selectedDate = date;
@@ -444,7 +457,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         type: getClusteringAlgorithm()
                     },
                     success: function (output) {
-                        console.log(output);
+                        //console.log(output);
                         clusters = output;
                         showTrends();
                         selectedColor = lilac;

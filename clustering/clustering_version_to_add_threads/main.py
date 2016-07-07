@@ -1,6 +1,7 @@
 from __future__ import print_function
 import time
 from time import time
+from time import sleep
 from clustering import Clustering
 from frequencies import Frequencies
 from multiprocessing import Process, Manager, Lock
@@ -114,7 +115,7 @@ class MainProgram():
             if len(relevant_tweet_ids) > self.threshold:
                 countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
-        numOfProcesses = min(32, len(countryJobs))
+        numOfProcesses = min(30, len(countryJobs))
         #numOfProcesses = 8
 
         print("NumOfProcesses: " + str(numOfProcesses) + ", country jobs: " + str(len(countryJobs)))
@@ -171,12 +172,12 @@ class MainProgram():
         else:
             clusterID_mapping = dict()
             for i in range(self.number_of_clusters):
-                unique_id = int(time()) + i
-                clusterID_mapping[i] = unique_id
-                #clusterID_mapping[i] = self.cluster_ID
-                #self.cluster_ID += 1
-
+                #unique_id = int(time())
+                #clusterID_mapping[i] = unique_id
+                clusterID_mapping[i] = self.cluster_ID
+                self.cluster_ID += 1
             # write file with top terms: cluster_id    term    datum    land
+
             date = filename[:-4]
             for top in top10.keys():
                 self.cluster_out_file.write(str(clusterID_mapping[top]) + "\t" + name + "\t" + " ".join(
@@ -208,7 +209,7 @@ class MainProgram():
                 self.id_out_file.write(geo2 + "\t")
                 self.id_out_file.write(tweet_text + "\n")
 
-              
+
 
 if __name__ == "__main__":
     begin = time()

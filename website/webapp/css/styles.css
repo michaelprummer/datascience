@@ -6,6 +6,11 @@
     height: 100%;
 }
 
+h3 {
+    margin-top: 0;
+    font-size: 18px;
+}
+
 .panel {
     background-color: #fff;
     border-bottom:none;
@@ -59,6 +64,7 @@ input#date {
     border-radius: 100px;
     margin-right: 10px;
     position: relative;
+    margin-top:5px;
 }
 .cluster:after {
     content: '';
@@ -207,7 +213,3 @@ input#date {
     clear: left;
 }
 
-#alg-option h3 {
-    margin-top: 0;
-    font-size: 18px;
-}

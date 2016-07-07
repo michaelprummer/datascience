@@ -1,5 +1,5 @@
 from __future__ import print_function
-
+import time
 from time import time
 from clustering import Clustering
 from frequencies import Frequencies
@@ -11,7 +11,7 @@ from sklearn import metrics
 
 
 def job(job_data, number_of_clusters, shared_val):
-    print("JOB DATA: " + str(len(job_data)))
+    #print("JOB DATA: " + str(len(job_data)))
 
     nmfData = []
     ldaData = []
@@ -24,7 +24,7 @@ def job(job_data, number_of_clusters, shared_val):
         cl = j[3]
 
         #print("Clustering for " + country + " (" + str(len(relevant_tweet_ids)) + " Tweets)")
-        t0 = time()
+        #t0 = time()
 
         # NMF
         name, parameters, top10, clusters = cl.applyNMF(number_of_clusters, country_specific_tweets)
@@ -38,7 +38,7 @@ def job(job_data, number_of_clusters, shared_val):
         name, parameters, top10, clusters = cl.applyKmeansMiniBatch(number_of_clusters, country_specific_tweets)
         kmeansData.append([name, country, top10, clusters, relevant_tweet_ids])
 
-        print(country + " done in %0.3fs" % (time() - t0))
+        #print(country + " done in %0.3fs" % (time() - t0))
 
     shared_val[0] = nmfData
     shared_val[1] = ldaData
@@ -114,8 +114,8 @@ class MainProgram():
             if len(relevant_tweet_ids) > self.threshold:
                 countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
-        #numOfProcesses = len(countryJobs)/2
-        numOfProcesses = 16
+        numOfProcesses = min(32, len(countryJobs))
+        #numOfProcesses = 8
 
         print("NumOfProcesses: " + str(numOfProcesses) + ", country jobs: " + str(len(countryJobs)))
 
@@ -171,8 +171,10 @@ class MainProgram():
         else:
             clusterID_mapping = dict()
             for i in range(self.number_of_clusters):
-                clusterID_mapping[i] = self.cluster_ID
-                self.cluster_ID += 1
+                unique_id = int(time()) + i
+                clusterID_mapping[i] = unique_id
+                #clusterID_mapping[i] = self.cluster_ID
+                #self.cluster_ID += 1
 
             # write file with top terms: cluster_id    term    datum    land
             date = filename[:-4]
@@ -210,7 +212,6 @@ class MainProgram():
 
 if __name__ == "__main__":
     begin = time()
-
     path = "data/"
     limit = None
     special_files = None #["20151126.csv"]

@@ -38,7 +38,7 @@ def deleteDuplicates():
 
 def importData():
     cur = db.cursor()
-    input = "data/"
+    input = "E:/xampp/htdocs/datascience/clustering/pydb/data/"
     files = os.listdir(input)
     # limit = 10
 
@@ -72,10 +72,9 @@ def importData():
 
 
 # Step 1
-#importData()
+importData()
 
 # Step 2
 #updateCllusterIDs()
-
 # Step 3
 #deleteDuplicates()

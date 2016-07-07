@@ -92,8 +92,9 @@ function database_clear() {
 
 function database_setup() {
     global $db;
-
+    //id MEDIUMINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     $tweetTable = "CREATE TABLE Tweets (
+         
         tweetID BIGINT(20),
         nmfID VARCHAR(30),
         ldaID VARCHAR(30),
@@ -104,7 +105,7 @@ function database_setup() {
     )";
 
     $clusterTable = "CREATE TABLE Clusters (
-        clusterID INT(8) PRIMARY KEY,
+        clusterID INT(8),
         ctype VARCHAR(10),
         terms VARCHAR(255) NOT NULL,
         cdate VARCHAR(63) NOT NULL,

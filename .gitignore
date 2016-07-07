@@ -44,3 +44,10 @@ dist
 .idea/workspace.xml
 /.idea
 /.idea
+/clustering/clustering_version_to_add_threads/*.pyc
+/clustering/clustering_version_to_add_threads/data/*.csv
+/clustering/data_preprocessing/altout/*.csv
+*.csv
+*.txt
+*.rar
+*.pyc

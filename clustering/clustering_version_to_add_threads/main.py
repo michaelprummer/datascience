@@ -11,31 +11,38 @@ from sklearn import metrics
 
 
 def job(job_data, number_of_clusters, shared_val):
+    print("JOB DATA: " + str(len(job_data)))
+
+    nmfData = []
+    ldaData = []
+    kmeansData = []
+
     for j in job_data:
         country = j[0]
         country_specific_tweets = j[1]
         relevant_tweet_ids = j[2]
         cl = j[3]
 
-        print("Clustering for " + country + " (" + str(len(relevant_tweet_ids)) + " Tweets)")
+        #print("Clustering for " + country + " (" + str(len(relevant_tweet_ids)) + " Tweets)")
         t0 = time()
-        print()
 
         # NMF
         name, parameters, top10, clusters = cl.applyNMF(number_of_clusters, country_specific_tweets)
-        shared_val[0] = [name, country, top10, clusters, relevant_tweet_ids]
+        nmfData.append([name, country, top10, clusters, relevant_tweet_ids])
 
         # LDA tfidf
         name, parameters, top10, clusters = cl.applyLDA2(number_of_clusters, country_specific_tweets)
-        shared_val[1] = [name, country, top10, clusters, relevant_tweet_ids]
+        ldaData.append([name, country, top10, clusters, relevant_tweet_ids])
 
         # Kmeans++
         name, parameters, top10, clusters = cl.applyKmeansMiniBatch(number_of_clusters, country_specific_tweets)
-        shared_val[2] = [name, country, top10, clusters, relevant_tweet_ids]
+        kmeansData.append([name, country, top10, clusters, relevant_tweet_ids])
 
-        print("done in %0.3fs" % (time() - t0))
+        print(country + " done in %0.3fs" % (time() - t0))
 
-
+    shared_val[0] = nmfData
+    shared_val[1] = ldaData
+    shared_val[2] = kmeansData
 
 
 
@@ -49,10 +56,10 @@ class MainProgram():
         self.out_path = out_path
         self.threshold = threshold
         self.cluster_ID = 0
-        
-        self.cluster_out_file = codecs.open(self.out_path + "cluster_terms.txt", "w", "utf-8")
-        self.id_out_file = codecs.open(self.out_path + "ids.txt", "w", "utf-8")
-        
+
+        self.cluster_out_file = codecs.open(self.out_path + "_cluster_terms.txt", "w", "utf-8")
+        self.id_out_file = codecs.open(self.out_path + "_ids.txt", "w", "utf-8")
+
         self.startProcess()
 
     def startProcess(self):
@@ -63,8 +70,10 @@ class MainProgram():
             files = os.listdir(self.path)
             
         for file in files:
+            #self.cluster_out_file = codecs.open(self.out_path + file + "_cluster_terms.txt", "w", "utf-8")
+            #self.id_out_file = codecs.open(self.out_path + file + "_ids.txt", "w", "utf-8")
             self.startCountrySpecificClustering(file)
-        
+
         self.cluster_out_file.close()
         self.id_out_file.close()
           
@@ -106,9 +115,9 @@ class MainProgram():
                 countryJobs.append([country, country_specific_tweets, relevant_tweet_ids, cl])
 
         #numOfProcesses = len(countryJobs)/2
-        numOfProcesses = 12
+        numOfProcesses = 16
 
-        print("NumOfProcesses: " + str(numOfProcesses))
+        print("NumOfProcesses: " + str(numOfProcesses) + ", country jobs: " + str(len(countryJobs)))
 
         for k, job_data in enumerate(countryJobs, 0):
             index = k % numOfProcesses
@@ -135,14 +144,18 @@ class MainProgram():
 
         #name, parameters, top10, clusters
         for sharedObj in p_shared_vals:
-            nmf = sharedObj[0]
-            lda = sharedObj[1]
-            kmeans = sharedObj[2]
+            nmfList = sharedObj[0]
+            ldaList = sharedObj[1]
+            kmeansList = sharedObj[2]
 
-            #print(nmf[1])
-            self.printResults(nmf[0], nmf[1], nmf[2], nmf[3], nmf[4], data, file)
-            self.printResults(lda[0], lda[1], lda[2], lda[3], nmf[4], data, file)
-            self.printResults(kmeans[0], kmeans[1], kmeans[2], kmeans[3], kmeans[4], data, file)
+            for nmf in nmfList:
+                self.printResults(nmf[0], nmf[1], nmf[2], nmf[3], nmf[4], data, file)
+
+            for lda in ldaList:
+                self.printResults(lda[0], lda[1], lda[2], lda[3], lda[4], data, file)
+
+            for kmeans in kmeansList:
+                self.printResults(kmeans[0], kmeans[1], kmeans[2], kmeans[3], kmeans[4], data, file)
 
 
     def printResults(self, name, country, top10, clusters, relevant_tweet_ids, data, filename):
@@ -174,6 +187,7 @@ class MainProgram():
                 tweet_text = data[tweet_id][3].decode("utf-8")
                 id = data[tweet_id][4]
                 clusterID = str(clusterID_mapping[clusters[i]])
+
                 if name == "nmf":
                     nmf = clusterID
                 elif name == "lda":

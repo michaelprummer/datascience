@@ -22,19 +22,19 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var clusterDiv = $('.cluster-wrap');
 
         var selectedCountry = null;
-        var selectedClusterType = 'n';
+        var selectedClusterType = 'nmf';
         var selectedDate = "20150101";
         var selectedColor = null;
         var clusters = null;
 
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
-
+        var countriesAvailable = [];
         var lilac = '#8e44ad';
         var red = '#F62459';
         var orange = '#e67e22';
 
         //lila, red, orange
-        var colors = ['#8e44ad', '#F62459', '#e67e22', '#f1c40f', '#2980b9', '#8e44ad', '#d35400', '#F75959', '#BB3658', '#63393E', '#71BA51', '#5659C9', '#A14C10', '#6B9B61', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#92DBC7', '#3C8AB8'];
+        var colors = ['#8e44ad', '#F62459', '#e67e22', '#f1c40f', '#2980b9', '#64DDBB', '#FF6861', '#10806E', '#981066', '#002E5A', '#71BA51', '#5659C9', '#A14C10', '#6B9B61', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#92DBC7', '#3C8AB8'];
 
         geocoder = new google.maps.Geocoder();
 
@@ -175,8 +175,14 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .selectAll('path')
                     //.filter(function(d) { return d.id == 'RUS' })
                     .attr('d', path)
+                    .classed('available', function(d) {
+                        if(countriesAvailable.indexOf(d.id) > -1){
+                            return true;
+                        }
+                    })
                     .on("click", function (d) {
                         if (!isDragging) {
+
                             stateSelected(d);
                         }
                     })
@@ -187,11 +193,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         isDragging = true;
                     })
                     .on("mouseover", function(){
-                        d3.select(this).classed("hover", !d3.select(this).classed("hover"));
+                        d3.select(this).classed("hover", true);
                         map.setOptions({ draggableCursor: 'pointer' });
                     })
                     .on("mouseout", function(){
-                        d3.select(this).classed("hover", !d3.select(this).classed("hover"));
+                        d3.select(this).classed("hover", false);
                         map.setOptions({ draggableCursor: 'initial' });
                     });
             }
@@ -244,13 +250,12 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 console.log(state_id);
                 svg.select('#countries')
                     .selectAll('path')
-                    .attr('class','')
+                    .classed('focus', false)
                     .filter(function(d) { return state_id == d.id;  })
-                    .attr('class', 'active');
+                    .classed('focus', true);
 
                 selectedCountry = state_id;
                 setCenter(state_name);
-                
                 getClusters();
             }
 
@@ -269,6 +274,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 onSelect: function () {
                     date = moment(picker.getDate()).format('YYYYMMDD');
                     selectedDate = date;
+                    getCountries();
                     getClusters();
                 }
             });
@@ -331,8 +337,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             function showLocations(clusterID) {
 
                 svg.select('#countries')
-                    .selectAll('path')
-                    .classed('focus',true);
+                    .selectAll('path');
                 getLocations(clusterID);
 
                 zoom(4);
@@ -423,7 +428,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 clusterDiv.empty();
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
                 $("#example-tweet").hide();
-                
+
                 clusters = null;
                 $('.topics').empty();
                 overlay.draw();
@@ -469,6 +474,26 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 });
             }
 
+            function getCountries() {
+                countriesAvailable = [];
+
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: '../website/backend/api/Api.php',
+                    data: {
+                        action: "getCountries",
+                        date: selectedDate,
+                        type: selectedClusterType
+                    },
+                    success: function (output) {
+                        countriesAvailable = output;
+                        overlay.draw();
+                    }
+                });
+            }
+
+            getCountries();
             
             function getClusteringAlgorithm() {
                 selectedClusterType = $('input[name=optradio]:checked', '#alg-option form').val();
@@ -477,6 +502,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
             $('input[name=optradio]').on("click", function() {
                 selectedClusterType = $('input[name=optradio]:checked', '#alg-option form').val();
+                getCountries();
                 getClusters();
             });
 

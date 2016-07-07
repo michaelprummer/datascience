@@ -12,7 +12,7 @@
     -webkit-box-shadow:  0 -4px 4px rgba(0,0,0,.25);
     -moz-box-shadow: 0 -4px 4px rgba(0,0,0,.25);
     box-shadow:  0 -4px 4px rgba(0,0,0,.25);
-    padding-top:20px;
+    padding-top:10px;
     z-index: 10;
     height: 100%;
     margin: 0;
@@ -30,7 +30,7 @@ input#date {
 .pika-single {
     color: #2c3e50;
     width: 258px;
-    margin: 0 auto 35px;
+    margin: 0 auto 10px;
 }
 .is-today .pika-button {
     color: #18bc9c;
@@ -48,34 +48,73 @@ input#date {
     text-decoration: none;
 }
 
-.topics {
+.cluster {
     max-width: 250px;
     cursor: pointer;
-    opacity: 0.8;
     display: block;
     margin-bottom: 10px;
-    padding: 0 15px;
+    float: left;
+    width: 20px;
+    height: 20px;
+    border-radius: 100px;
+    margin-right: 10px;
+    position: relative;
 }
-.topics:after {
+.cluster:after {
     content: '';
     display: table;
     clear: left;
 }
-.topics span {
+.cluster .terms {
+    display: none;
+    padding: 10px;
+    width: 180px;
+    border-radius: 10px;
+
+}
+
+.cluster .terms span{
     margin-right: 10px;
     float: left;
 }
-.cluster-1 {
-    color: #8e44ad;
-    margin: 0 auto 20px;
-}
-.cluster-2 {
-    float: right;
-    color: #F62459;
+
+.cluster:hover .terms {
+    display: block;
+    top: 20px;
+    left: 10px;
+    position: absolute;
+    background: #f5f5f5;
+    z-index: 1000;
 }
 
-.cluster-3 {
-    color: #e67e22;
+.cluster:first-child, .cluster:nth-child(2), .cluster:nth-child(3) {
+    opacity: 0.8;
+    border-radius: 0;
+    float: none;
+    width: auto;
+    height: auto;
+    background: none !important;
+    max-width: 100%;
+}
+.cluster:first-child .terms, .cluster:nth-child(2) .terms, .cluster:nth-child(3) .terms{
+    display: block;
+    position: relative !important;
+    top: auto;
+    left: auto;
+    width: auto;
+    padding: 0;
+}
+.cluster:first-child {
+    /*margin: 0 auto 10px;*/
+
+}
+.cluster:nth-child(2) {
+    /*float: right;*/
+}
+
+.cluster-wrap:after {
+    content: '';
+    clear: both;
 }
 
 #map {
@@ -156,10 +195,19 @@ input#date {
 }
 
 .date-picker-wrap {
-    min-height:500px;
+    min-height:550px;
 }
 
 .gmap-twitterlink {
     display: block;
     padding: 1em;
+}
+
+#alg-option {
+    clear: left;
+}
+
+#alg-option h3 {
+    margin-top: 0;
+    font-size: 18px;
 }

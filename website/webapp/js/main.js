@@ -19,6 +19,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var path = null;
         var overlayProjection = null;
 
+        var clusterDiv = $('.cluster-wrap');
 
         var selectedCountry = null;
         var selectedClusterType = 'n';
@@ -31,6 +32,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var lilac = '#8e44ad';
         var red = '#F62459';
         var orange = '#e67e22';
+
+        //lila, red, orange
+        var colors = ['#8e44ad', '#F62459', '#e67e22', '#f1c40f', '#2980b9', '#8e44ad', '#d35400', '#F75959', '#BB3658', '#63393E', '#71BA51', '#5659C9', '#A14C10', '#6B9B61', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#92DBC7', '#3C8AB8'];
 
         geocoder = new google.maps.Geocoder();
 
@@ -104,7 +108,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
         function ready(error, data) {
             overlay.setMap(map);
-            initTopics();
 
             var countries = topojson.feature(data, data.objects.countries).features;
 
@@ -234,21 +237,19 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function stateSelected(d) {
-                state_id = d.id;
-                state_name = d.properties.name;
 
+                var state_id = d.id;
+                var state_name = d.properties.name;
+
+                console.log(state_id);
                 svg.select('#countries')
                     .selectAll('path')
                     .attr('class','')
                     .filter(function(d) { return state_id == d.id;  })
                     .attr('class', 'active');
 
-                //if (state_name==='Russia'){
-                //  state_name ="Russian Federation";
-                //}
                 selectedCountry = state_id;
-                //date = picker.getDate();
-                setCenter(selectedCountry);
+                setCenter(state_name);
                 
                 getClusters();
             }
@@ -282,7 +283,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function setCenter(state_name) {
-                console.log(state_name);
                 geocoder.geocode( {'address' : state_name}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {
                         map.setCenter(results[0].geometry.location);
@@ -292,49 +292,39 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 });
             }
 
-            function initTopics() {
-                $('.topics').click(function() {
-                    if ($(this).hasClass('cluster-1')) { selectedColor = lilac; }
-                    if ($(this).hasClass('cluster-2')) { selectedColor = red; }
-                    if ($(this).hasClass('cluster-3')) { selectedColor = orange; }
-
-                    showLocations($(this).attr('data-id'));
-                });
-            }
 
             // called after country was selected -- or after new date is selected
             function showTrends(){
-
+                clusterDiv.empty();
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
 
-                if(clusters[0]) {
-                    var terms = clusters[0]['terms'].split(" ");
-                    newWordCloud(terms, ".cluster-1", clusters[0]['id']);
-                }
-                if(clusters[1]) {
-                    var terms = clusters[1]['terms'].split(" ");
-                    newWordCloud(terms, ".cluster-2", clusters[1]['id']);
-                }
-                if(clusters[2]) {
-                    var terms = clusters[2]['terms'].split(" ");
-                    newWordCloud(terms, ".cluster-3", clusters[2]['id']);
-                }
+                $.each( clusters, function( intValue, currentElement ) {
+                    var div = ('<div class="cluster" id="cluster-' + currentElement['id'] + '"><div class="terms"></div></div>');
+                    clusterDiv.append(div);
+                    var terms = currentElement['terms'].split(" ");
+                    newWordCloud(terms, currentElement['id'], intValue);
+                });
             }
 
-            function newWordCloud(words, id, clusterID) {
-                d3.select(id)
+            function newWordCloud(words, clusterID, intValue) {
+                d3.select('#cluster-' + clusterID)
                     .attr('data-id', clusterID)
-                    .selectAll("span").remove();
-                d3.select(id)
+                    .attr('style', 'background: ' + colors[intValue] + ';')
+                    .select('.terms')
                     .selectAll("span")
                     .data(words)
                     .enter().append("span")
                     .attr("style", function() {
                         size = 12 + Math.random() * 6;
                         opacity = 0.8 + Math.random() * 0.2;
-                        return 'font-size: '+ size + 'px; opacity: '+ opacity;
+                        return 'font-size: '+ size + 'px; opacity: '+ opacity + '; color: '+ colors[intValue];
                     })
                     .text(function(d) { return d; });
+
+                $('#cluster-' + clusterID).click(function() {
+                    selectedColor = colors[intValue];
+                    showLocations($(this).attr('data-id'));
+                });
             }
 
 
@@ -430,7 +420,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             }
 
             function getClusters() {
-                console.log('empty geojson');
+                clusterDiv.empty();
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
                 clusters = null;
                 $('.topics').empty();

@@ -64,6 +64,10 @@ if(isset($_GET['action'])) {
         case 'getClusters':
             get_clusters($_GET['location'], $_GET['date'],  $_GET['type']);
             break;
+
+        case 'getCountries':
+            get_countries($_GET['date'],  $_GET['type']);
+            break;
     }
 }
 
@@ -190,5 +194,29 @@ function get_tweets($algo, $clusterID){
         echo "0 results";
     }
 }
+
+function get_countries($date, $algo){
+
+    global $db;
+
+    $query = "SELECT country FROM clusters WHERE cdate='".$date."' AND ctype='".$algo."' GROUP BY country";
+    $result = $db -> query($query);
+
+    if (sizeof($result) > 0) {
+        $arr = [];
+        $inc = 0;
+
+        foreach ($result as $row) {
+            $arr[$inc] = $row->country;
+            $inc++;
+        }
+        $json_array = json_encode($arr);
+        echo $json_array;
+    }
+    else{
+        echo "0 results";
+    }
+}
+
 
 ?>

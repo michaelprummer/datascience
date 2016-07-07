@@ -153,31 +153,35 @@ input#date {
 #countries path {
     stroke-width: 0px;
     vector-effect: non-scaling-stroke;
-    fill: transparent;
+    fill: #000;
     stroke: #ddd;
-    opacity: 0;
+    opacity: 0.08;
     -webkit-transition: fill 0.3s ease; /* Safari */
     transition: fill 0.3s ease;
 }
 
-#countries path.active {
-    fill: #18bc9c;
-    opacity: 0.3;
-    stroke-width: 1px;
-    stroke: #2c3e50;
-}
-#countries path.active.focus {
+#countries path.available {
     fill: transparent;
-}
-
-#countries path.hover {
     opacity: 0.15;
     stroke-width: 1px;
     stroke: #2c3e50;
 }
 
-#countries path.hover.active {
-    opacity: 0.4;
+#countries path.available.focus {
+    fill: transparent;
+}
+
+#countries path.available.hover {
+    fill: #18bc9c;
+    opacity: 0.3;
+    stroke-width: 1px;
+    stroke: #2c3e50;
+}
+
+#countries path.available.focus:hover {
+    fill: transparent;
+    stroke: #2c3e50;
+    opacity: 0.3;
 }
 
 .locations path {

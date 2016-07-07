@@ -422,6 +422,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             function getClusters() {
                 clusterDiv.empty();
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
+                $("#example-tweet").hide();
+                
                 clusters = null;
                 $('.topics').empty();
                 overlay.draw();
@@ -448,6 +450,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
             function getLocations(clusterID) {
                 locationGeoJson =  {type: 'FeatureCollection', features: [] };
+                $("#example-tweet").hide();
 
                 $.ajax({
                     type: "GET",

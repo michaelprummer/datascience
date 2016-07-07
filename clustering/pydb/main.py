@@ -15,17 +15,24 @@ def updateCllusterIDs():
     WHERE tweets.tweetId = b.tweetId AND tweets.nmfID = -1
     """)
     db.commit()
+    print("NMF DONE")
 
     cur.execute("""UPDATE tweets, (SELECT DISTINCT ldaID, tweetId FROM tweets WHERE ldaID > 0) b
     SET tweets.ldaID = b.ldaID
     WHERE tweets.tweetId = b.tweetId AND tweets.ldaID = -1""")
     db.commit()
+    print("LDA DONE")
 
     cur.execute("""UPDATE tweets, (SELECT DISTINCT kmeansID, tweetId FROM tweets WHERE kmeansID > 0) b
     SET tweets.kmeansID = b.kmeansID
     WHERE tweets.tweetId = b.tweetId AND tweets.kmeansID = -1""")
     cur.execute
+    db.commit()
+    print("KM DONE")
 
+def deleteDuplicates():
+    cur = db.cursor()
+    cur.execute("DELETE n1 FROM tweets n1, tweets n2 WHERE n1.tweetId = n2.tweetId")
     db.commit()
 
 
@@ -64,5 +71,11 @@ def importData():
     db.close()
 
 
+# Step 1
 #importData()
+
+# Step 2
 #updateCllusterIDs()
+
+# Step 3
+#deleteDuplicates()

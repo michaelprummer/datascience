@@ -283,6 +283,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 onSelect: function () {
                     date = moment(picker.getDate()).format('YYYYMMDD');
                     selectedDate = date;
+
                     getCountries();
                     getClusters();
                 }

@@ -153,8 +153,8 @@ input#date {
 #countries path {
     stroke-width: 0px;
     vector-effect: non-scaling-stroke;
-    opacity: 0.08;
-    fill: #000;
+    opacity: 0.4;
+    fill: #bdc3c7;
     stroke: #ddd;
     -webkit-transition: fill 0.3s ease; /* Safari */
     transition: fill 0.3s ease;
@@ -167,10 +167,17 @@ input#date {
     stroke: #2c3e50;
 }
 
-#countries path.available.focus {
+#countries path.focus {
+    opacity: 1;
     fill: transparent;
     stroke: #18bc9c;
+    stroke-width: 2px;
+}
+
+#countries path.available.focus {
     opacity: 1;
+    fill: transparent;
+    stroke: #18bc9c;
     stroke-width: 2px;
 }
 

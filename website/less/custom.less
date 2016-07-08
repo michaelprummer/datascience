@@ -91,7 +91,7 @@ body {
   margin-bottom: 60px;
 }
 .footer {
-  position: absolute;
+  clear: both;
   bottom: 0;
   width: 100%;
   /* Set the fixed height of the footer here */
@@ -107,6 +107,59 @@ body {
   font-size: 14px;
   padding: 4px 20px;
   margin: 0;
+  float: left;
 }
 
+.footer .container .text-right {
+  float: right;
+  a {
+    color: #fff;
+  }
+}
 
+.section-doc {
+  margin-bottom: 20px;
+}
+code[class*="language-"] {
+  white-space: pre-wrap !important;
+}
+
+#toc {
+  top: 70px;
+  left: 10px;
+  position: fixed;
+  background: #f5f5f5;
+  border-radius: 6px;
+  max-width: 220px;
+}
+
+#toc ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#toc li {
+  padding: 5px 10px;
+}
+
+#toc a {
+  text-decoration: none;
+  display: block;
+}
+
+#toc .h2 {
+  margin-top: 10px;
+  font-size: 20px;
+  padding-left: 10px;
+}
+
+#toc .h3 {
+  margin-top: 10px;
+  font-size: 16px;
+  padding-left: 20px;
+}
+
+#toc .toc-active a {
+  color: #0f7864;
+}

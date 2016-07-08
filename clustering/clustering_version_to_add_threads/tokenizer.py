@@ -18,7 +18,7 @@ regex_strings += (ur"""[:=8;\*)][-o\*\']?[\)\(\{\}\</@\|\\\>\]DdPpOo\*]""",) # p
 regex_strings += (ur"""[\*DdPpOo\)\(\{\}\</@\|\\\>\]][-o\*\']?[;:=8\*]""",) # punctuation smileys
 regex_strings += (ur"""\*{1}[(\w\s)]+\*{1}""",) # words with asterisks: *grin*
 regex_strings += (ur"""\^_*\^|\^[-oO]?\^""",) # punctuation smileys
-regex_strings += (ur"""\U0001F602""",)
+regex_strings += (ur"""\U0001F602""",) # UTF-8 encoded smileys
 regex_strings += (ur"""\U0001F603""",)
 regex_strings += (ur"""\U0001F604""",)
 regex_strings += (ur"""\U0001F605""",)

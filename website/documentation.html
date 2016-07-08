@@ -61,251 +61,262 @@
 --> 
 
 <!-- Begin page content -->
-<div class="container">
-  <div class="page-header">
-      <h1>Documentation</h1>
-  </div>
-  
+<div class="content col-md-12">
+    <div class="col-md-2">
+        <div id="toc"></div>
+    </div>
+
+    <div id="documentation" class="container col-md-10">
+      <div class="page-header">
+          <h1>Documentation</h1>
+      </div>
 
 
-	<!-- Documentation -->
-  <div class="section-doc">
-    <h2 id="#motivation">Motivation</h2>
-    <p>Twitter massages (Tweets) can be used to find geographically related information, various trending topics of interest and distribution of opinions.
-      Analyzing the data of a specific region within a given sliding window and location can help to find currently important events or detect crisis.
-      Goal of this project is the creation of a tool which is able to show the most important topics for a location. Thus after selecting a day and country,
-      the application will show the top three trending topics for the chosen day.</p>
-  </div>
 
-  <div class="section-doc">
-    <h2 id="#corpus">Corpus</h2>
-    <p>The initial corpus of 750GB was a data set provided by the "Database Systems Group" of the LMU. The crawled tweets were all form the year 2015 and saved in raw JSON format.
-      Overall, 10 days were missing in the corpus while the tweet number of a day was constantly decreasing from January till December.</p>
+        <!-- Documentation -->
+      <div class="section-doc">
+        <h2 id="#motivation">Motivation</h2>
+        <p>Twitter massages (Tweets) can be used to find geographically related information, various trending topics of interest and distribution of opinions.
+          Analyzing the data of a specific region within a given sliding window and location can help to find currently important events or detect crisis.
+          Goal of this project is the creation of a tool which is able to show the most important topics for a location. Thus after selecting a day and country,
+          the application will show the top three trending topics for the chosen day.</p>
+      </div>
 
-    <h3>Corpus Processing</h3>
-    <p>As first step we filtered out all tweets without geo-coordinates, which reduced the file size we had to handle drastically. All Tweets with less than 5 tokens
-      were removed, while user references and URLs didn't count. Hashtags were counted and added as a token. To improve the clustering results
-      we only used Tweets labeled as english language. Further the city and country of a Tweet were recalculated through reverse geocoding to get uniform locations.
-      The finally saved data record looked like this:
-    </p>
-    <pre><code class="highlight language-markup">
-      TwitterId   |   UserId  |   longitude, latitude   |   TweetText   |   CountryCode   |   CityId
-    </code></pre>
-    <br>
-    <br>
-    <p>We also removed the following:</p>
-    <ul>
-      <li>Removing of all Re-Tweets</li>
-      <li>Tweets from weather forecast bots</li>
-      <li>Duplicates by using the Jaccard algorithm on sorted tweets (~6.8M )
-      <pre><code class="highlight language-python">
-      def jaccard(a, b):
-        intersection = float(len(set(a) & set(b)))
-        union = float(len(set(a) | set(b)))
-        return intersection/union
-    </code></pre>
+      <div class="section-doc">
+        <h2 id="#corpus">Corpus</h2>
+        <p>The initial corpus of 750GB was a data set provided by the "Database Systems Group" of the LMU. The crawled tweets were all form the year 2015 and saved in raw JSON format.
+          Overall, 10 days were missing in the corpus while the tweet number of a day was constantly decreasing from January till December.</p>
 
-      </li>
-      <li>General Tweets with #jobs, #birthday</li>
-      <li>Special chars like tabs or line brakes from the Tweet text</li>
-    </ul>
-
-    <p>After finishing the preprocessing we had <b>179.735.774</b> usable remaining Tweets.</p>
-  </div>
-	
- <div class="section-doc">
-    <h2 id="#feat">Feature Extraction</h2>
-	<p>	We used the TF-IDF values of the corpus tweets as features for our clustering process. Therefore, each token of each tweet was converted to a number computed by his term frequency with normalization by the inverse document frequency of this token (for more information click <a target="_blank" href="http://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html">here</a>). However, before computing these values, the tweets had to be preprocessed to filter out irrelevant information of this unstructured data. </p>
-		
-	<h3>Tweet Preprocessing</h3>
-	<p>Each tweet was processed with the following steps:</p>
-	<p>We developed our own tweet tokenizer to be able to process tweets correctly without losing any information. Using regular expressions we were able to recognize URLs, emoticons (punctuation and UTF-8 format), user references, ellipses (...) and regular word formats as tokens. 
-	<pre><code class="highlight language-python">
-		regex_strings = (ur"""[:=8;\*)][-o\*\']?[\)\(\{\}\</@\|\\\>\]DdPpOo\*]""",) # punctuation smileys
-		regex_strings += (ur"""[\*DdPpOo\)\(\{\}\</@\|\\\>\]][-o\*\']?[;:=8\*]""",) # punctuation smileys
-		regex_strings += (ur"""\*{1}[(\w\s)]+\*{1}""",) # words with asterisks: *grin*
-		regex_strings += (ur"""\^_*\^|\^[-oO]?\^""",) # punctuation smileys
-		regex_strings += (ur"""\U0001F602""",) # UTF-8 encoded emoticons
-		regex_strings += (ur"""\U0001F603""",)
-		regex_strings += (ur"""\U0001F604""",)
-		# ... much more UTF-8 encoded emoticons ...
-		regex_strings += (ur"""(?:@[\w_]+)""",) # twitter user name.
-		regex_strings += (ur"""(?:\#+[\w_]+[\w\'_\-]*[\w_]+)""",) # twitter hashtags.
-		regex_strings += (ur"""<[^>]+>""",) # html tags. 
-		regex_strings += (ur"""http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+""",) # urls.
-		regex_strings += (ur"""(?:(?:\+?[01][\-\s.]*)?(?:[\(]?\d{3}[\-\s.\)]*)?\d{3}[\-\s.]*\d{4})""",) # phone numbers
-		regex_strings += (ur"""(?:[a-z][a-z'\-_]+[a-z])""",) # Words with apostrophes or dashes.
-		regex_strings += (ur"""(?:[+\-]?\d+[,/.:-]\d+[+\-]?)""",)  # Numbers, including fractions, decimals.
-		regex_strings += (ur"""(?:[\w_]+)""",) # Words without apostrophes or dashes.
-		regex_strings += (ur"""(?:\.(?:\s*\.){1,})""",) # Ellipsis dots. 
-		regex_strings += (ur"""(?:\S)""",) # Everything else that isn't whitespace.
-		word_re = re.compile(r"""(%s)""" % "|".join(regex_strings), re.VERBOSE | re.I | re.UNICODE)
-
-		class MyTokenizer:
-			def __init__(self, preserve_case=False):
-				self.preserve_case = preserve_case
-				
-			def tokenize(self, tweet):
-				"""
-				@param Unicode tweet
-				@return List of unicode tokens
-				"""
-				
-				words = word_re.findall(tweet)
-				if not self.preserve_case:            
-					words = map((lambda x : x if emoticon_re.search(x) else x.lower()), words)
-				return words
-    </code></pre>
-	Since after tokenization the tokens are explicitly identified and e.g. URLs can be omited savely without removing words after or before the URLs, we deleted URLs, user references and so called stopwords. A list of ignored terms (including pronouns and prepositions)  was created iteratively by evaluating the cluster terms and estimate their meaning for a cluster. Therefore, these terms and tokens with a length smaller than 3 were considered as stopwords and categorized as irrelevant for trend/topic detection since they usually don't carry any important information or content.
-	    <pre><code class="highlight language-markup">
-     List of ignored terms (335 terms):
-	  a, ahead, all, an, any, anybody, anyone, anything, aww, both, by, don, each, either, everybody, everyone, everything, few, from, he, her,
-	  hers, herself, him , himself, his, in, its, itself, ive, many, me, mine, most, my, myself, neither, no, nobody, none, nothing, on, one, our,
-	  ours, ourselves, several, she, some, somebody, someone, something, that, their, theirs, themselves, these, this, those, to, us, we, what,
-	  when, which, who, whom, whose, you, your, yours, yourself,  yourselves, 'bout, 'gainst, 'long, 'mong, 'mongst, 'neath, 'pon, 'round, 'til, 2,
-	  4, @, B4, ablow, aboard, about, above, abreast, abroad, absent, across, adjacent, afore, after, against, ahind, aint, allow, along, alongside,
-	  always, amid, amidst, among, amongst, amp, an, and, anear, another, anymore, apart, apropos, apud, are, around, as, astride, at, atop, atween,
-	  ayond, bar, be, because, been, before, behind, below, beneath, beside, besides, best, between, beyond, big, bout, bove, brrr, btw, but, by,
-	  c., ca., can, cant, chez, circa, come, could, cross, cum, cuz, damn, dehors, despite, did, doesn, doesnt, done, down, during, except, extra,
-	  fast, for, forever, from, gainst, get, goes, going, got, had, has, have, here, hey, how, i, in, inside, into, it, just, keep, last, latest,
-	  less, let, lets, like, lol, lot, makes, meant, mid, midst, might, minus, mom, mong, more, much, nah, near, nearer, neath, never, new, no, not,
-	  notwithstanding, now, o', o'er, of, off, omg, on, once, onto, ontop, opposite, other, our, out, outen, outside, over, own, pace, past, per,
-	  please, pon, post, pre, pro, put, qua, re, round, same, sans, sauf, save, set, short, should, since, sithence, sometimes, somewhere, soo,
-	  soon, spite, stay, still, such, sweet, tha, than, that, the, them, there, theres, they, thing, things, though, through, throughout, thru,
-	  thruout, til, till, to, tofore, too, toward, towards, under, underneath, unlike, until, up, upon, upside, v., versus, very, via, vice,
-	  vis-a-vis, vs., w/c, w/i, w/o, want, was, we, well, were, whats, which, whichever, who, whoever, whole, whom, whomever, whose, why, will,
-	  with, within, without, worth, would, yall, yes, yet, you, your, youre	 
-    </code></pre>
-	Additionally, we developed a small hashtag processing to obtain the words within a hashtag (e.g. #goodwork). This example hashtag is more or less easily readable for a human but needs a specific processing for a machine. Again, regular expressions are used to split hashtags using the CamelCase notation (= capitalized subtokens): 
-	<pre><code class="highlight language-python">
-		# Handle hashtags
-		def processHashtags(token)
-            if token.startswith("#"):
-				token = token[1:]
-                # split on upper case after removing first letter (#-sign): #NiceTalk -> Nice Talk
-                words = re.findall('[A-Z][^A-Z]*', token)
-                
-				# token contained explicitly capitalized letters within a word (= no whitespace in token).
-                if len(words) > 0:
-                    token = " ".join(words)
-					return token
-                
-				# no capitalization as hint for word splitting: #goodgirl -> goodgirl.
-				# Future Work: dictionary based approach to split such tokens.
-				return token
-    </code></pre>
-	For all remaining, not yet handled tokens another regular expression is used to remove all non-char signs (like e.g. punctuation). The lowercase process is done as the last step of preprocessing since some previous token handlings needed the information of the original tweet spelling.
-	
-	<h3>Processig of the Geo Locations</h3>
-	<p>Since our clustering is done for each country and each day separately, we defined a country mapping. Each key-value pair of this mapping represents the country (key) and its corresponding tweets (value list). </p>
-	<pre><code class="highlight language-python">
-	def country_mapping(self, data):
-		"""
-		@param data has an n x m shape. 
-		       m = number of tweets available for one day.
-			   n = [geo_location, country, preprocessed_tweet, original_tweet, tweet_id].
-		"""
-        country_map = {}
-		
-		# For all tweets of one day.
-        for i in range(len(data)):
-			tweet = data[i][2]
-            country = data[i][1]
-			
-			# If country is already a key in the mapping, we append the new tweet 
-			# to the list of the other tweets from this country.
-            if country in country_map.keys():
-                country_tweets = country_map[country]
-                country_tweets.append(tweet)
-                country_map[country] = country_tweets
-			
-			# new entry in mapping for this country and add first tweets belonging to this country.
-            else:
-                country_map[country] = [tweet]
-        
-        return country_map
-	</code></pre>
-  </div>
-
-  <div class="section-doc">
-    <h2 id="#cl">Clustering</h2>
-	<p>We tested three different clustering algorithms and used the same TF-IDF matrix as input data for each algorithm. </p>
-	<p>Clustering algorithms:</p>
-	<ul>
-      <li>Algorithm I: <a target="_blank" href="http://scikit-learn.org/stable/modules/clustering.html#mini-batch-kmeans">K-means (MiniBatch)</a></li>
-	  <li>Algorithm II: <a target="_blank" href="http://scikit-learn.org/stable/modules/decomposition.html#latent-dirichlet-allocation-lda">Latent Dirichlet Allocation (LDA)</a></li>
-	  <li>Algorithm III: <a target="_blank" href="http://scikit-learn.org/stable/modules/decomposition.html#non-negative-matrix-factorization-nmf-or-nnmf">Non-negative Matrix Factorization (NMF)</a></li>
-	</ul>
-	
-	<p> All these algorithms provide the possibility to enter the intended number of clusters and different parameters. We tuned them with the following settings:</p>
-	<pre><code class="highlight language-python">
-	# Import modules.
-	from sklearn.cluster import MiniBatchKMeans
-	from sklearn.decomposition import NMF, LatentDirichletAllocation
-	
-	# Define how many clusters you want.
-	number_of_clusters = 20
-	
-	km = MiniBatchKMeans(n_clusters=number_of_clusters, init='k-means++',init_size=1000,batch_size=1000, verbose=False)
-	
-	lda = LatentDirichletAllocation(n_topics=number_of_clusters, max_iter=5, learning_method='online', learning_offset=50., random_state=0)
-	
-	nmf = NMF(n_components=number_of_clusters, random_state=1, alpha=.1, l1_ratio=.5)
-	</code></pre>
-	
-	<p>After fitting them with data for one country, they returned 20 clusters for this country. Subsequently, the feature vectors were used to compute the 10 top terms of each cluster. During validation period, we used the <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_samples.html#sklearn.metrics.silhouette_samples">Silhouette Coefficient</a> to get more information about the performance of the algorithms and to adapt parameters and preprocessing to obtain better results (in the form of better terms and better clusters). On average, we computed 2 clusters per day for the whole "world". </p>
-	
-	<p>Our initial idea was to map all tweets of one day on 3 clusters. The problem is that short messsages like tweets are too short to be clearly assignable to one out of three cluster and that the amount of topics of one day in twitter is too ambiguous to reduce them on 3 big trending topics. Therefore, we decided to define more clusters and select the 3 largest ones as the hottest topics of each day. 
-	Furthermore, we tested the DBSCAN algorithm. On the one hand its big advantage is the detection of noise in data, but on the other hand the number of cluster can not be defined and the algorithm took much more time on our big data set.</p>
-  </div>
-
-  <div class="section-doc">
-    <h2 id="#vis">Visualization</h2>
-    <h3>Backend</h3>
-    <p>Data is stored in a MySql Database and accessed through a PHP wrapper with post requests.</p>
-
-    <h3>Frontend</h3>
-    <p>Technologies used for the user interface:
+        <h3>Corpus Processing</h3>
+        <p>As first step we filtered out all tweets without geo-coordinates, which reduced the file size we had to handle drastically. All Tweets with less than 5 tokens
+          were removed, while user references and URLs didn't count. Hashtags were counted and added as a token. To improve the clustering results
+          we only used Tweets labeled as english language. Further the city and country of a Tweet were recalculated through reverse geocoding to get uniform locations.
+          The finally saved data record looked like this:
+        </p>
+        <pre><code class="highlight language-markup">
+          TwitterId   |   UserId  |   longitude, latitude   |   TweetText   |   CountryCode   |   CityId
+        </code></pre>
+        <br>
+        <br>
+        <p>We also removed the following:</p>
         <ul>
-            <li><a href="https://jquery.com/">jQuery</a></li>
-            <li><a href="https://developers.google.com/maps/?hl=de">Google Maps API</a></li>
-            <li><a href="https://d3js.org/">D3</a></li>
-            <li><a href="http://geojson.org/">GeoJson</a></li>
-            <li><a href="https://dbushell.github.io/Pikaday/">Pikaday</a></li>
+          <li>Removing of all Re-Tweets</li>
+          <li>Tweets from weather forecast bots</li>
+          <li>Duplicates by using the Jaccard algorithm on sorted tweets (~6.8M )
+          <pre><code class="highlight language-python">
+          def jaccard(a, b):
+            intersection = float(len(set(a) & set(b)))
+            union = float(len(set(a) | set(b)))
+            return intersection/union
+        </code></pre>
+
+          </li>
+          <li>General Tweets with #jobs, #birthday</li>
+          <li>Special chars like tabs or line brakes from the Tweet text</li>
         </ul>
-      The interface consists out of an interactive GoogleMap, a datepicker as well as controls to select the cluster algorithm.
-      A custom <a href="https://developers.google.com/maps/documentation/javascript/customoverlays">OverlayView</a> containing geographic data is added to the Google Map.
-      Users can select a combination of a country and a day they want to explore.
-      Country borders, encoded in GeoJSON data, are rendered as SVG paths into the GoogleMaps overlay and can be selected through clicking on them.
-      After selecting country and date, the top three clusters for this period of time are getting displayed on the left side of the screen.
-      All the tweets belonging to the selected cluster get mapped onto the overlay as well. On mouseover events the textual content of the tweet gets displayed as a custom tooltip.
+
+        <p>After finishing the preprocessing we had <b>179.735.774</b> usable remaining Tweets.</p>
+      </div>
+
+     <div class="section-doc">
+        <h2 id="#feat">Feature Extraction</h2>
+        <p>	We used the TF-IDF values of the corpus tweets as features for our clustering process. Therefore, each token of each tweet was converted to a number computed by his term frequency with normalization by the inverse document frequency of this token (for more information click <a target="_blank" href="http://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html">here</a>). However, before computing these values, the tweets had to be preprocessed to filter out irrelevant information of this unstructured data. </p>
+
+        <h3>Tweet Preprocessing</h3>
+        <p>Each tweet was processed with the following steps:</p>
+        <p>We developed our own tweet tokenizer to be able to process tweets correctly without losing any information. Using regular expressions we were able to recognize URLs, emoticons (punctuation and UTF-8 format), user references, ellipses (...) and regular word formats as tokens.
+        <pre><code class="highlight language-python">
+            regex_strings = (ur"""[:=8;\*)][-o\*\']?[\)\(\{\}\</@\|\\\>\]DdPpOo\*]""",) # punctuation smileys
+            regex_strings += (ur"""[\*DdPpOo\)\(\{\}\</@\|\\\>\]][-o\*\']?[;:=8\*]""",) # punctuation smileys
+            regex_strings += (ur"""\*{1}[(\w\s)]+\*{1}""",) # words with asterisks: *grin*
+            regex_strings += (ur"""\^_*\^|\^[-oO]?\^""",) # punctuation smileys
+            regex_strings += (ur"""\U0001F602""",) # UTF-8 encoded emoticons
+            regex_strings += (ur"""\U0001F603""",)
+            regex_strings += (ur"""\U0001F604""",)
+            # ... much more UTF-8 encoded emoticons ...
+            regex_strings += (ur"""(?:@[\w_]+)""",) # twitter user name.
+            regex_strings += (ur"""(?:\#+[\w_]+[\w\'_\-]*[\w_]+)""",) # twitter hashtags.
+            regex_strings += (ur"""<[^>]+>""",) # html tags.
+            regex_strings += (ur"""http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+""",) # urls.
+            regex_strings += (ur"""(?:(?:\+?[01][\-\s.]*)?(?:[\(]?\d{3}[\-\s.\)]*)?\d{3}[\-\s.]*\d{4})""",) # phone numbers
+            regex_strings += (ur"""(?:[a-z][a-z'\-_]+[a-z])""",) # Words with apostrophes or dashes.
+            regex_strings += (ur"""(?:[+\-]?\d+[,/.:-]\d+[+\-]?)""",)  # Numbers, including fractions, decimals.
+            regex_strings += (ur"""(?:[\w_]+)""",) # Words without apostrophes or dashes.
+            regex_strings += (ur"""(?:\.(?:\s*\.){1,})""",) # Ellipsis dots.
+            regex_strings += (ur"""(?:\S)""",) # Everything else that isn't whitespace.
+            word_re = re.compile(r"""(%s)""" % "|".join(regex_strings), re.VERBOSE | re.I | re.UNICODE)
+
+            class MyTokenizer:
+                def __init__(self, preserve_case=False):
+                    self.preserve_case = preserve_case
+
+                def tokenize(self, tweet):
+                    """
+                    @param Unicode tweet
+                    @return List of unicode tokens
+                    """
+
+                    words = word_re.findall(tweet)
+                    if not self.preserve_case:
+                        words = map((lambda x : x if emoticon_re.search(x) else x.lower()), words)
+                    return words
+        </code></pre>
+        Since after tokenization the tokens are explicitly identified and e.g. URLs can be omited savely without removing words after or before the URLs, we deleted URLs, user references and so called stopwords. A list of ignored terms (including pronouns and prepositions)  was created iteratively by evaluating the cluster terms and estimate their meaning for a cluster. Therefore, these terms and tokens with a length smaller than 3 were considered as stopwords and categorized as irrelevant for trend/topic detection since they usually don't carry any important information or content.
+            <pre><code class="highlight language-markup">
+         List of ignored terms (335 terms):
+          a, ahead, all, an, any, anybody, anyone, anything, aww, both, by, don, each, either, everybody, everyone, everything, few, 
+		  from, he, her, hers, herself, him , himself, his, in, its, itself, ive, many, me, mine, most, my, myself, neither, no, nobody, 
+		  none, nothing, on, one, our, ours, ourselves, several, she, some, somebody, someone, something, that, their, theirs, 
+		  themselves, these, this, those, to, us, we, what,when, which, who, whom, whose, you, your, yours, yourself,  yourselves, 
+		  'bout, 'gainst, 'long, 'mong, 'mongst, 'neath, 'pon, 'round, 'til, 2, 4, @, B4, ablow, aboard, about, above, abreast, abroad, 
+		  absent, across, adjacent, afore, after, against, ahind, aint, allow, along, alongside, always, amid, amidst, among, amongst, 
+		  amp, an, and, anear, another, anymore,apart, apropos, apud, are, around, as, astride, at, atop, atween, ayond, bar, be, 
+		  because, been, before, behind, below, beneath, beside, besides, best, between, beyond, big, bout, bove, brrr, btw, but, by, 
+		  c., ca., can, cant, chez, circa, come, could, cross, cum, cuz, damn, dehors, despite, did, doesn, doesnt, done, down, during, 
+		  except, extra, fast, for, forever, from, gainst, get, goes, going, got, had, has, have, here, hey, how, i, in, inside, into, 
+		  it, just, keep, last, latest, less, let, lets, like, lol, lot, makes, meant, mid, midst, might, minus, mom, mong, more, much, 
+		  nah, near, nearer, neath, never, new, no, not, notwithstanding, now, o', o'er, of, off, omg, on, once, onto, ontop, opposite, 
+		  other, our, out, outen, outside, over, own, pace, past, per, please, pon, post, pre, pro, put, qua, re, round, same, sans, 
+		  sauf, save, set, short, should, since, sithence, sometimes, somewhere, soo, soon, spite, stay, still, such, sweet, tha, than, 
+		  that, the, them, there, theres, they, thing, things, though, through, throughout, thru, thruout, til, till, to, tofore, too, 
+		  toward, towards, under, underneath, unlike, until, up, upon, upside, v., versus, very, via, vice, vis-a-vis, vs., w/c, w/i, 
+		  w/o, want, was, we, well, were, whats, which, whichever, who, whoever, whole, whom, whomever, whose, why, will, with, within, 
+		  without, worth, would, yall, yes, yet, you, your, youre
+        </code></pre>
+        Additionally, we developed a small hashtag processing to obtain the words within a hashtag (e.g. #goodwork). This example hashtag is more or less easily readable for a human but needs a specific processing for a machine. Again, regular expressions are used to split hashtags using the CamelCase notation (= capitalized subtokens):
+        <pre><code class="highlight language-python">
+            # Handle hashtags
+            def processHashtags(token)
+                if token.startswith("#"):
+                    token = token[1:]
+                    # split on upper case after removing first letter (#-sign): #NiceTalk -> Nice Talk
+                    words = re.findall('[A-Z][^A-Z]*', token)
+
+                    # token contained explicitly capitalized letters within a word (= no whitespace in token).
+                    if len(words) > 0:
+                        token = " ".join(words)
+                        return token
+
+                    # no capitalization as hint for word splitting: #goodgirl -> goodgirl.
+                    # Future Work: dictionary based approach to split such tokens.
+                    return token
+        </code></pre>
+        For all remaining, not yet handled tokens another regular expression is used to remove all non-char signs (like e.g. punctuation). The lowercase process is done as the last step of preprocessing since some previous token handlings needed the information of the original tweet spelling.
+
+        <h3>Processing of the Geo Locations</h3>
+        <p>Since our clustering is done for each country and each day separately, we defined a country mapping. Each key-value pair of this mapping represents the country (key) and its corresponding tweets (value list). </p>
+        <pre><code class="highlight language-python">
+        def country_mapping(self, data):
+            """
+            @param data has an n x m shape.
+                   m = number of tweets available for one day.
+                   n = [geo_location, country, preprocessed_tweet, original_tweet, tweet_id].
+            """
+            country_map = {}
+
+            # For all tweets of one day.
+            for i in range(len(data)):
+                tweet = data[i][2]
+                country = data[i][1]
+
+                # If country is already a key in the mapping, we append the new tweet
+                # to the list of the other tweets from this country.
+                if country in country_map.keys():
+                    country_tweets = country_map[country]
+                    country_tweets.append(tweet)
+                    country_map[country] = country_tweets
+
+                # new entry in mapping for this country and add first tweets belonging to this country.
+                else:
+                    country_map[country] = [tweet]
+
+            return country_map
+        </code></pre>
+      </div>
+
+      <div class="section-doc">
+        <h2 id="#cl">Clustering</h2>
+        <p>We tested three different clustering algorithms and used the same TF-IDF matrix as input data for each algorithm. </p>
+        <p>Clustering algorithms:</p>
+        <ul>
+          <li>Algorithm I: <a target="_blank" href="http://scikit-learn.org/stable/modules/clustering.html#mini-batch-kmeans">K-means (MiniBatch)</a></li>
+          <li>Algorithm II: <a target="_blank" href="http://scikit-learn.org/stable/modules/decomposition.html#latent-dirichlet-allocation-lda">Latent Dirichlet Allocation (LDA)</a></li>
+          <li>Algorithm III: <a target="_blank" href="http://scikit-learn.org/stable/modules/decomposition.html#non-negative-matrix-factorization-nmf-or-nnmf">Non-negative Matrix Factorization (NMF)</a></li>
+        </ul>
+
+        <p> All these algorithms provide the possibility to enter the intended number of clusters and different parameters. We tuned them with the following settings:</p>
+        <pre><code class="highlight language-python">
+        # Import modules.
+        from sklearn.cluster import MiniBatchKMeans
+        from sklearn.decomposition import NMF, LatentDirichletAllocation
+
+        # Define how many clusters you want.
+        number_of_clusters = 20
+
+        km = MiniBatchKMeans(n_clusters=number_of_clusters, init='k-means++',init_size=1000,batch_size=1000, 
+							verbose=False)
+
+        lda = LatentDirichletAllocation(n_topics=number_of_clusters, max_iter=5, learning_method='online', 
+										learning_offset=50., random_state=0)
+
+        nmf = NMF(n_components=number_of_clusters, random_state=1, alpha=.1, l1_ratio=.5)
+        </code></pre>
+
+        <p>After fitting them with data for one country, they returned 20 clusters for this country. Subsequently, the feature vectors were used to compute the 10 top terms of each cluster. During validation period, we used the <a target="_blank" href="http://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_samples.html#sklearn.metrics.silhouette_samples">Silhouette Coefficient</a> to get more information about the performance of the algorithms and to adapt parameters and preprocessing to obtain better results (in the form of better terms and better clusters). On average, we computed 2 clusters per day for the whole "world". </p>
+
+        <p>Our initial idea was to map all tweets of one day on 3 clusters. The problem is that short messsages like tweets are too short to be clearly assignable to one out of three cluster and that the amount of topics of one day in twitter is too ambiguous to reduce them on 3 big trending topics. Therefore, we decided to define more clusters and select the 3 largest ones as the hottest topics of each day.
+        Furthermore, we tested the DBSCAN algorithm. On the one hand its big advantage is the detection of noise in data, but on the other hand the number of cluster can not be defined and the algorithm took much more time on our big data set.</p>
+      </div>
+
+      <div class="section-doc">
+        <h2 id="#vis">Visualization</h2>
+        <h3>Backend</h3>
+        <p>Data is stored in a MySql Database and accessed through a PHP wrapper with post requests.</p>
+
+        <h3>Frontend</h3>
+        <p>Technologies used for the user interface:
+            <ul>
+                <li><a href="https://jquery.com/">jQuery</a></li>
+                <li><a href="https://developers.google.com/maps/?hl=de">Google Maps API</a></li>
+                <li><a href="https://d3js.org/">D3</a></li>
+                <li><a href="http://geojson.org/">GeoJson</a></li>
+                <li><a href="https://dbushell.github.io/Pikaday/">Pikaday</a></li>
+            </ul>
+          The interface consists out of an interactive GoogleMap, a datepicker as well as controls to select the cluster algorithm.
+          A custom <a href="https://developers.google.com/maps/documentation/javascript/customoverlays">OverlayView</a> containing geographic data is added to the Google Map.
+          Users can select a combination of a country and a day they want to explore.<br>
+          Country borders, encoded in GeoJSON data, are rendered as SVG paths into the GoogleMaps overlay and can be selected through clicking on them.
+          After selecting country and date, the top three clusters for this period of time are getting displayed on the left side of the screen.<br>
+          Below even more clusters (up to twenty in total) are displayed as circles. When hovering over them with the mouse, the cluster terms of those clusters get displayed as a tooltip. They can be clicked and explored in the same way as the top three clusters. <br>
+          All the tweets belonging to the selected cluster get mapped onto the overlay according to their geographic information. On mouseover events the textual content of the tweet gets displayed as a custom tooltip.
 
 
-    </p>
+        </p>
 
-    <img style=" width: 100%;" src="img/visualization.png">
+        <img style="display:block; width: 80%; opacity:0.8; margin: 20px auto 40px; border-radius: 6px;" src="img/visualization.png">
 
-  </div>
+      </div>
 
-  <div class="section-doc">
-    <h2 id="#fut">Future Work</h2>
-    <ul>
-	  <li>More specific preprocessing (not only TF-IDF, but more linguistics features to get more specific information of tweet content)</li>
-	  <li>Outlier Detection before clustering</li>
-      <li>Support of different languages</li>
-      <li>Live changing of cluster parameters</li>
-	  <li>Color coding of the map e.g. Country color with Number of Tweets</li>
-	  <li> and more ... </li>
-    </ul>
+      <div class="section-doc">
+        <h2 id="#fut">Future Work</h2>
+        <ul>
+          <li>More specific preprocessing (not only TF-IDF, but more linguistics features to get more specific information of tweet content)</li>
+          <li>Outlier Detection before clustering</li>
+          <li>Support of different languages</li>
+          <li>Live changing of cluster parameters</li>
+          <li>Color coding of the map e.g. Country color with Number of Tweets</li>
+          <li> and more ... </li>
+        </ul>
 
-  </div>
+      </div>
 
+    </div>
 </div>
-
 
 <footer  class="footer" style="position: relative;">
   <div class="container">
-    <p class="text-muted">@LMU 2016. Jennifer Ling, Michael Prummer, Sandra Zollner</p>
+      <p class="text-muted">@LMU 2016. Jennifer Ling, Michael Prummer, Sandra Zollner</p>
+      <p class="text-right">Code and Presentations: <a href="https://github.com/michaelprummer/datascience" target="_blank">https://github.com/michaelprummer/datascience</a></p>
   </div>
 </footer>
 
@@ -316,6 +327,29 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
 <script src="dist/js/bootstrap.min.js"></script>
+<script src="js/toc.js"></script>
+
+<script type="text/javascript">
+    $('#toc').toc({
+        'selectors': 'h2,h3', //elements to use as headings
+        'container': '#documentation', //element to find all selectors in
+        'smoothScrolling': true, //enable or disable smooth scrolling on click
+        'prefix': 'toc', //prefix for anchor tags and class names
+        'onHighlight': function(el) {}, //called when a new section is highlighted
+        'highlightOnScroll': true, //add class to heading that is currently in focus
+        'highlightOffset': 150, //offset to trigger the next headline
+        'anchorName': function(i, heading, prefix) { //custom function for anchor name
+            return prefix+i;
+        },
+        'headerText': function(i, heading, $heading) { //custom function building the header-item text
+            return $heading.text();
+        },
+        'itemClass': function(i, heading, $heading, prefix) { // custom function for item class
+            return $heading[0].tagName.toLowerCase();
+        }
+    });
+</script>
+
 <link href="js/prism.js" rel="stylesheet">
 <link href="prism.css" rel="stylesheet">
 </body>

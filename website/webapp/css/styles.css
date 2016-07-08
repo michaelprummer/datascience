@@ -169,6 +169,9 @@ input#date {
 
 #countries path.available.focus {
     fill: transparent;
+    stroke: #18bc9c;
+    opacity: 1;
+    stroke-width: 2px;
 }
 
 #countries path.available.hover {

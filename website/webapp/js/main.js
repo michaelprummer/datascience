@@ -264,7 +264,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             var picker = new Pikaday({
                 field: document.getElementById('date'),
                 minDate: moment("25-05-2015", "DD-MM-YYYY").toDate(),
-                maxDate: moment("30-11-2015", "DD-MM-YYYY").toDate(),
+                maxDate: moment("31-12-2015", "DD-MM-YYYY").toDate(),
                 defaultDate: moment("25-05-2015", "DD-MM-YYYY").toDate(),
                 setDefaultDate: true,
                 firstDay: 1,
@@ -272,15 +272,11 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 bound: false,
                 container: document.getElementById('date-picker'),
                 disableDayFn: function(dateTime){
+                    if(new Date(2015, 11, 1) <= dateTime && new Date(2015, 11, 24) > dateTime)
+                        return true
 
-                    if(new Date(2015, 4, 31) < dateTime) {
-                        //console.log(dateTime)
-
-                        if(new Date(2015, 9, 31) < dateTime) {
-                            return false
-                        } else {
+                    if(new Date(2015, 4, 31) < dateTime && new Date(2015, 10, 1) > dateTime) {
                             return true
-                        }
                     }
 
                 },

@@ -56,7 +56,7 @@ class MainProgram():
         self.number_of_clusters = number_of_clusters
         self.out_path = out_path
         self.threshold = threshold
-        self.cluster_ID = 0
+        self.cluster_ID = 146649
 
         self.cluster_out_file = codecs.open(self.out_path + "_cluster_terms.txt", "w", "utf-8")
         self.id_out_file = codecs.open(self.out_path + "_ids.txt", "w", "utf-8")

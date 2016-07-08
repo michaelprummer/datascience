@@ -164,24 +164,24 @@
         Since after tokenization the tokens are explicitly identified and e.g. URLs can be omited savely without removing words after or before the URLs, we deleted URLs, user references and so called stopwords. A list of ignored terms (including pronouns and prepositions)  was created iteratively by evaluating the cluster terms and estimate their meaning for a cluster. Therefore, these terms and tokens with a length smaller than 3 were considered as stopwords and categorized as irrelevant for trend/topic detection since they usually don't carry any important information or content.
             <pre><code class="highlight language-markup">
          List of ignored terms (335 terms):
-          a, ahead, all, an, any, anybody, anyone, anything, aww, both, by, don, each, either, everybody, everyone, everything, few, from, he,
-          her, hers, herself, him , himself, his, in, its, itself, ive, many, me, mine, most, my, myself, neither, no, nobody, none, nothing,
-          on, one, our, ours, ourselves, several, she, some, somebody, someone, something, that, their, theirs, themselves, these, this, those,
-          to, us, we, what,when, which, who, whom, whose, you, your, yours, yourself,  yourselves, 'bout, 'gainst, 'long, 'mong, 'mongst,
-          'neath, 'pon, 'round, 'til, 2, 4, @, B4, ablow, aboard, about, above, abreast, abroad, absent, across, adjacent, afore, after,
-          against, ahind, aint, allow, along, alongside, always, amid, amidst, among, amongst, amp, an, and, anear, another, anymore,
-          apart, apropos, apud, are, around, as, astride, at, atop, atween, ayond, bar, be, because, been, before, behind, below, beneath,
-          beside, besides, best, between, beyond, big, bout, bove, brrr, btw, but, by, c., ca., can, cant, chez, circa, come, could, cross,
-          cum, cuz, damn, dehors, despite, did, doesn, doesnt, done, down, during, except, extra, fast, for, forever, from, gainst, get, goes,
-          going, got, had, has, have, here, hey, how, i, in, inside, into, it, just, keep, last, latest, less, let, lets, like, lol, lot,
-          makes, meant, mid, midst, might, minus, mom, mong, more, much, nah, near, nearer, neath, never, new, no, not, notwithstanding, now,
-          o', o'er, of, off, omg, on, once, onto, ontop, opposite, other, our, out, outen, outside, over, own, pace, past, per, please, pon,
-          post, pre, pro, put, qua, re, round, same, sans, sauf, save, set, short, should, since, sithence, sometimes, somewhere, soo, soon,
-          spite, stay, still, such, sweet, tha, than, that, the, them, there, theres, they, thing, things, though, through, throughout, thru,
-          thruout, til, till, to, tofore, too, toward, towards, under, underneath, unlike, until, up, upon, upside, v., versus, very, via,
-          vice, vis-a-vis, vs., w/c, w/i, w/o, want, was, we, well, were, whats, which, whichever, who, whoever, whole, whom, whomever,
-          whose, why, will, with, within, without, worth, would, yall, yes,
-          yet, you, your, youre
+          a, ahead, all, an, any, anybody, anyone, anything, aww, both, by, don, each, either, everybody, everyone, everything, few, 
+		  from, he, her, hers, herself, him , himself, his, in, its, itself, ive, many, me, mine, most, my, myself, neither, no, nobody, 
+		  none, nothing, on, one, our, ours, ourselves, several, she, some, somebody, someone, something, that, their, theirs, 
+		  themselves, these, this, those, to, us, we, what,when, which, who, whom, whose, you, your, yours, yourself,  yourselves, 
+		  'bout, 'gainst, 'long, 'mong, 'mongst, 'neath, 'pon, 'round, 'til, 2, 4, @, B4, ablow, aboard, about, above, abreast, abroad, 
+		  absent, across, adjacent, afore, after, against, ahind, aint, allow, along, alongside, always, amid, amidst, among, amongst, 
+		  amp, an, and, anear, another, anymore,apart, apropos, apud, are, around, as, astride, at, atop, atween, ayond, bar, be, 
+		  because, been, before, behind, below, beneath, beside, besides, best, between, beyond, big, bout, bove, brrr, btw, but, by, 
+		  c., ca., can, cant, chez, circa, come, could, cross, cum, cuz, damn, dehors, despite, did, doesn, doesnt, done, down, during, 
+		  except, extra, fast, for, forever, from, gainst, get, goes, going, got, had, has, have, here, hey, how, i, in, inside, into, 
+		  it, just, keep, last, latest, less, let, lets, like, lol, lot, makes, meant, mid, midst, might, minus, mom, mong, more, much, 
+		  nah, near, nearer, neath, never, new, no, not, notwithstanding, now, o', o'er, of, off, omg, on, once, onto, ontop, opposite, 
+		  other, our, out, outen, outside, over, own, pace, past, per, please, pon, post, pre, pro, put, qua, re, round, same, sans, 
+		  sauf, save, set, short, should, since, sithence, sometimes, somewhere, soo, soon, spite, stay, still, such, sweet, tha, than, 
+		  that, the, them, there, theres, they, thing, things, though, through, throughout, thru, thruout, til, till, to, tofore, too, 
+		  toward, towards, under, underneath, unlike, until, up, upon, upside, v., versus, very, via, vice, vis-a-vis, vs., w/c, w/i, 
+		  w/o, want, was, we, well, were, whats, which, whichever, who, whoever, whole, whom, whomever, whose, why, will, with, within, 
+		  without, worth, would, yall, yes, yet, you, your, youre
         </code></pre>
         Additionally, we developed a small hashtag processing to obtain the words within a hashtag (e.g. #goodwork). This example hashtag is more or less easily readable for a human but needs a specific processing for a machine. Again, regular expressions are used to split hashtags using the CamelCase notation (= capitalized subtokens):
         <pre><code class="highlight language-python">
@@ -253,9 +253,11 @@
         # Define how many clusters you want.
         number_of_clusters = 20
 
-        km = MiniBatchKMeans(n_clusters=number_of_clusters, init='k-means++',init_size=1000,batch_size=1000, verbose=False)
+        km = MiniBatchKMeans(n_clusters=number_of_clusters, init='k-means++',init_size=1000,batch_size=1000, 
+							verbose=False)
 
-        lda = LatentDirichletAllocation(n_topics=number_of_clusters, max_iter=5, learning_method='online', learning_offset=50., random_state=0)
+        lda = LatentDirichletAllocation(n_topics=number_of_clusters, max_iter=5, learning_method='online', 
+										learning_offset=50., random_state=0)
 
         nmf = NMF(n_components=number_of_clusters, random_state=1, alpha=.1, l1_ratio=.5)
         </code></pre>
@@ -314,7 +316,7 @@
 <footer  class="footer" style="position: relative;">
   <div class="container">
       <p class="text-muted">@LMU 2016. Jennifer Ling, Michael Prummer, Sandra Zollner</p>
-      <p class="text-right"><a href="https://github.com/michaelprummer/datascience" target="_blank">https://github.com/michaelprummer/datascience</a></p>
+      <p class="text-right">Code and Presentations: <a href="https://github.com/michaelprummer/datascience" target="_blank">https://github.com/michaelprummer/datascience</a></p>
   </div>
 </footer>
 

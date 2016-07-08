@@ -34,7 +34,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var orange = '#e67e22';
 
         //lila, red, orange
-        var colors = ['#8e44ad', '#F62459', '#e67e22', '#f1c40f', '#2980b9', '#64DDBB', '#FF6861', '#10806E', '#981066', '#002E5A', '#71BA51', '#5659C9', '#A14C10', '#6B9B61', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#92DBC7', '#3C8AB8'];
+        var colors = ['#8e44ad', '#F62459', '#e67e22', '#E01931', '#2980b9', '#64DDBB', '#FF6861', '#10806E', '#981066', '#002E5A', '#71BA51', '#5659C9', '#F9690E', '#00B5B5', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#27AE60', '#D33257'];
 
         geocoder = new google.maps.Geocoder();
 
@@ -283,6 +283,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 onSelect: function () {
                     date = moment(picker.getDate()).format('YYYYMMDD');
                     selectedDate = date;
+
                     getCountries();
                     getClusters();
                 }

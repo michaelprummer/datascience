@@ -27,13 +27,13 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
         var selectedColor = null;
         var clusters = null;
 
+        // geoGson object for Tweets coming from database
         var locationGeoJson =  {type: 'FeatureCollection', features: [] };
+        // list for all countries, for which data is available at selected date, coming from database
         var countriesAvailable = [];
-        var lilac = '#8e44ad';
-        var red = '#F62459';
-        var orange = '#e67e22';
 
-        //lila, red, orange
+
+        // colors for different clusters
         var colors = ['#8e44ad', '#F62459', '#e67e22', '#E01931', '#2980b9', '#64DDBB', '#FF6861', '#10806E', '#981066', '#002E5A', '#71BA51', '#5659C9', '#F9690E', '#00B5B5', '#B3005A', '#7CA39C', '#918E45', '#E66A39', '#27AE60', '#D33257'];
 
         geocoder = new google.maps.Geocoder();
@@ -68,38 +68,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
             scale: 5 //pixels
         };
 
-        styles = [
-            [{
-                url: 'webapp/images/circle.svg',
-                height: 40,
-                width: 40,
-                anchor: [0, 0],
-                textColor: 'rgba(142,68,173,0.8)',
-                textSize: 12,
-                iconAnchor: [0, 0]
-            }],
-            [{
-                url: 'webapp/images/circle-r.svg',
-                height: 40,
-                width: 40,
-                anchor: [0, 0],
-                textColor: 'rgba(246,36,89,0.8)',
-                textSize: 12,
-                iconAnchor: [0, 0]
-            }],
-            [{
-                url: 'webapp/images/circle-o.svg',
-                height: 40,
-                width: 40,
-                anchor: [0, 0],
-                textColor: 'rgba(230,126,34,0.8)',
-                textSize: 12,
-                iconAnchor: [0, 0]
-            }]
-        ];
-
-        /*var mcOptions;
-        var mc = new MarkerClusterer(map);*/
 
         // Load the  json data
         queue()
@@ -216,6 +184,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                     .on("click", function (d) {
                         OpenInNewTab("https://twitter.com/statuses/" + d.properties.id)
                     })
+                    //on mouseover tooltip containing tweet text is shown
                     .on("mouseover", function (d) {
                         d3.select(this).style("fill", "#2c3e50");
                         if(d.properties.text.length > 5){
@@ -250,7 +219,9 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 console.log(state_id);
                 svg.select('#countries')
                     .selectAll('path')
+                    // clear focus state for all countries
                     .classed('focus', false)
+                    // selected country is set to focus
                     .filter(function(d) { return state_id == d.id;  })
                     .classed('focus', true);
 
@@ -302,8 +273,6 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 geocoder.geocode( {'address' : state_name}, function(results, status) {
                     if (status == google.maps.GeocoderStatus.OK) {
                         map.setCenter(results[0].geometry.location);
-                        //overlay.draw();
-                        //zoom(4);
                     }
                 });
             }
@@ -322,6 +291,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                 });
             }
 
+            // creates tag cloud of clusters
             function newWordCloud(words, clusterID, intValue) {
                 d3.select('#cluster-' + clusterID)
                     .attr('data-id', clusterID)
@@ -354,85 +324,8 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
 
             }
 
-            function updateMarkers(jsonObject) {
 
-                if (mc) {
-                    mc.clearMarkers();
-                }
-                var style;
-
-                switch (selectedColor) {
-                    case red:
-                        style = 1;
-                        break;
-                    case orange:
-                        style = 2;
-                        break;
-                    default:
-                        style = 0;
-                }
-                var mcOptions = {
-                    gridSize: 30,
-                    maxZoom: 8,
-                    minimumClusterSize: 7,
-                    styles: styles[style],
-                    zoomOnClick: true
-                };
-
-                mc = new MarkerClusterer(map, [], mcOptions);
-
-                var markers = [];
-
-                for (var i = 0, feature; feature = jsonObject[i]; i++) {
-
-                    if (feature) {
-                        icon.fillColor = selectedColor;
-                        var marker = new google.maps.Marker({
-                            fid: i,
-                            position: new google.maps.LatLng(
-                                feature.geometry.coordinates[1],
-                                feature.geometry.coordinates[0]
-                            ),
-                            map: map,
-                            icon: icon
-                        });
-                        marker.set('text', feature.properties.text);
-                        //bounds.extend(marker.position)
-                        markers.push(marker);
-
-
-                        marker.addListener('mouseover', function () {
-
-                            icon.fillColor = '#2c3e50';
-                            this.setIcon(icon);
-
-                            infowindow = new google.maps.InfoWindow({
-                                content: this.get('text')
-                            });
-
-                            infowindow.open(map, this);
-
-                        });
-                        marker.addListener("mouseout", function () {
-                            icon.fillColor = selectedColor;
-                            this.setIcon(icon);
-                            infowindow.close();
-                        });
-                    }
-                }
-                //map.fitBounds(bounds);
-                for (var i = 0; i < 100; i++) {
-                    mc.addMarkers(markers);
-
-                    mc.addListener('mouseover', function () {
-                        infowindow = new google.maps.InfoWindow({
-                            content: 'test'
-                        });
-
-                        infowindow.open(map, this);
-                    });
-                }
-            }
+            // ******* Ajax requests ********
 
             function getClusters() {
                 clusterDiv.empty();
@@ -457,7 +350,7 @@ requirejs(["d3","topojson", "queue", "moment", "pikaday"],
                         //console.log(output);
                         clusters = output;
                         showTrends();
-                        selectedColor = lilac;
+                        selectedColor = '#8e44ad';
                         showLocations(clusters[0]['id']);
                     }
                 });

@@ -138,7 +138,7 @@ function get_clusters($location, $date, $algo){
 
     global $db;
 	// ToDo: set LIMIT
-    $query = "SELECT clusterID, terms FROM clusters WHERE country='".$location."' AND cdate='".$date."' AND ctype='".$algo."' LIMIT 500";
+    $query = "SELECT clusterID, terms FROM clusters WHERE country='".$location."' AND cdate='".$date."' AND ctype='".$algo."'";
     $result = $db -> query($query);
 
     if (sizeof($result) > 0) {

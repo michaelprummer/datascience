@@ -11,6 +11,9 @@ from tokenizer import MyTokenizer
 from preprocessing import Preprocessing
 
 class Frequencies():
+    """
+    Compute term frequencies (Top 100).
+    """
     def __init__(self, path, limit):
         self.path = path
         self.limit = limit

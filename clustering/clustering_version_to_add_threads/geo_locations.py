@@ -6,6 +6,9 @@ import re, codecs
 from clustering import Clustering
 
 class Geo():
+    """
+    Loads data, loads preprocessing and does country mapping.
+    """
     def __init__(self):
         self.pp = Preprocessing()
     
@@ -25,7 +28,6 @@ class Geo():
         print("Loading data from " + path, end=" - ")
         t0 = time()
         
-        #data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,5,6,6,0], comments=None)
         data = numpy.loadtxt(path, dtype='str', delimiter="\t", usecols = [2,5,3,3,0], comments=None)
 
         print("done in %0.3fs" % (time() - t0))
@@ -61,6 +63,9 @@ class Geo():
         return data
     
     def country_mapping(self, data):
+        """
+        Mapping: country (key) - corresponding tweet ids (value list).
+        """
         country_map = {}
         for i in range(len(data)):
             country = data[i][1]

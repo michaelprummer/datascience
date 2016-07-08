@@ -21,13 +21,18 @@ import codecs
 import numpy
 
 class Clustering():
-    
+    """
+    Creates TF-IDF matrix as input for cluster algorithms.
+    """
     def __init__(self, results=False):
        
         self.results = results
                     
     def extractFeatures(self, data, tf=False):
-                
+        """
+        Creates TF-IDF matrix for data input.
+        If desired, creates also only TF-matrix.
+        """
         tfidf_training_matrix, tfidf_terms = self.useTfidfVectorizer(data)
         
         if tf:
@@ -65,13 +70,12 @@ class Clustering():
             print("Parameter: " + str(parameters))
         topics = nmf.components_
         doc_topic = nmf.transform(train)
-        top10, labels = self.printLDACluster(topics, doc_topic, feature_names)
+        top10, labels = self.printTopicCluster(topics, doc_topic, feature_names)
         labels = numpy.asarray(labels)
         
         if self.results:
             print("Silhouette Coefficient {0}: {1}".format(name, metrics.silhouette_score(train, labels)))
                    
-        
         return name, parameters, top10, labels
              
     
@@ -94,12 +98,11 @@ class Clustering():
         parameters = lda.get_params()
         topics = lda.components_
         doc_topic = lda.transform(train)
-        top10, labels = self.printLDACluster(topics, doc_topic, feature_names)
+        top10, labels = self.printTopicCluster(topics, doc_topic, feature_names)
         labels = numpy.asarray(labels)
         
         if self.results:
             print("Silhouette Coefficient {0}: {1}".format(name, metrics.silhouette_score(train, labels)))
-        
         
         return name, parameters, top10, labels
 
@@ -128,7 +131,6 @@ class Clustering():
         # explained_variance = svd.explained_variance_ratio_.sum()
         #print("Explained variance of the SVD step: {}%".format(int(explained_variance * 100)))
     
-        #print()
         if self.results:
             print("Clustering sparse data", end=" - ")                 
         t0 = time()
@@ -141,12 +143,14 @@ class Clustering():
 
         parameters = km.get_params()
         labels = km.labels_
+        
         # without SVD:
         order_centroids = km.cluster_centers_.argsort()[:, ::-1]
         
-        # using SVD:
+        # with SVD:
         #original_space_centroids = svd.inverse_transform(km.cluster_centers_)
         #order_centroids = original_space_centroids.argsort()[:, ::-1]
+        
         top10 = self.printKMeansCluster(number_of_clusters, labels, order_centroids, feature_names)
         
         if self.results:
@@ -184,7 +188,7 @@ class Clustering():
         
         return top10
     
-    def printLDACluster(self, topics, doc_topic, feature_names):
+    def printTopicCluster(self, topics, doc_topic, feature_names):
         top10 = dict()
         clusters = []
         doc_counter = dict()
@@ -213,6 +217,9 @@ class Clustering():
         return top10, clusters
     
     def useTfidfVectorizer(self, data):
+        """
+        Extracts TF-IDF values and computes feature names.
+        """
         if self.results:
             print()
             print("Extracting features from the training dataset using a sparse vectorizer", end=" - ")
@@ -227,26 +234,6 @@ class Clustering():
             print()
         
         feature_names = vectorizer.get_feature_names()
-        return matrix, feature_names
-    
-    
-    def useTfidfTransformer(self, data):
-        if self.results:
-            print()
-            print("Extracting features from the training dataset using a sparse vectorizer", end=" - ")
-        t0 = time()
-        # include counter to generate count matrix
-        count_vectorizer = CountVectorizer(stop_words='english')
-        count_matrix = count_vectorizer.fit_transform(data)
-        vectorizer = TfidfTransformer(norm='l2', use_idf=True, smooth_idf=True, sublinear_tf=False)
-        matrix = vectorizer.fit_transform(count_matrix)
-        if self.results:
-            print("done in %0.3fs" % (time() - t0))
-            print("n_samples: %d, n_features: %d" % matrix.shape)
-            print()
-        
-        feature_names = count_vectorizer.get_feature_names()
-        
         return matrix, feature_names
     
 

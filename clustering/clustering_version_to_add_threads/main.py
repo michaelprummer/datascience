@@ -10,6 +10,9 @@ from geo_locations import Geo
 import os, numpy, re, codecs
 from sklearn import metrics
 
+"""
+Distribute country processing on different threads by creating so called jobs for them.
+"""
 
 def job(job_data, number_of_clusters, shared_val):
     #print("JOB DATA: " + str(len(job_data)))
@@ -48,22 +51,44 @@ def job(job_data, number_of_clusters, shared_val):
 
 
 class MainProgram():
-
+    """
+    For each country in a country map (key: country, value: tweets of this country) 
+    clustering is started here and finally results are printed.
+    Each loaded file contains tweets from all over the world for one day in 2015.
+    File format: tweet_id, date, geo_location, tweet_text, country_code, city_code.
+    """
     def __init__(self, path="data/", special_files=None, limit=None, number_of_clusters=10,out_path="/", threshold=100):
+        
+        # All files in path will be loaded. 
+        # Otherwise you should specificy the file name you want to load from this path.
         self.path = path
         self.special_files = special_files
+        
+        # define if you only want to cluster a specific number of tweets.
         self.limit = limit
+        
+        # define number of clusters.
         self.number_of_clusters = number_of_clusters
-        self.out_path = out_path
+                
+        # country needs specific number of tweets to be able to do clustering.
         self.threshold = threshold
+        
+        # each cluster gets unique id
         self.cluster_ID = 146649
-
+        
+        # open output files.
+        self.out_path = out_path
         self.cluster_out_file = codecs.open(self.out_path + "_cluster_terms.txt", "w", "utf-8")
-        self.id_out_file = codecs.open(self.out_path + "_ids.txt", "w", "utf-8")
-
+        self.tweet_counter = 0
+        self.file_counter = 1
+        self.id_out_file = codecs.open(self.out_path + "ids_" + str(self.file_counter) + ".txt", "w", "utf-8")
+        
         self.startProcess()
 
     def startProcess(self):
+        """
+        For each files clustering will be started.
+        """
         
         if self.special_files:
             files = self.special_files
@@ -71,18 +96,22 @@ class MainProgram():
             files = os.listdir(self.path)
             
         for file in files:
-            #self.cluster_out_file = codecs.open(self.out_path + file + "_cluster_terms.txt", "w", "utf-8")
-            #self.id_out_file = codecs.open(self.out_path + file + "_ids.txt", "w", "utf-8")
             self.startCountrySpecificClustering(file)
 
         self.cluster_out_file.close()
         self.id_out_file.close()
           
     def startFreq(self, file):
+        """
+        Get term frequencies (Top 100) for definition of corpus specific stopwords.
+        """
         freq = Frequencies(self.path + file, self.limit)
         freq.countFreq()
     
     def startCountrySpecificClustering(self, file):
+        """
+        Load tweets of one file and then process country per country.
+        """
         geo = Geo()
         data, country_map = geo.getGeoTweets(self.path + file, self.limit)
 
@@ -93,7 +122,7 @@ class MainProgram():
             print("ERROR in length of loaded data!")
             exit()
         
-        # decide if results are printed on stdout (top terms and how many tweets are in one cluster).
+        # load clustering object; decide if results are printed on stdout (top terms and how many tweets are in one cluster).
         cl = Clustering(results=False)
 
         # Processes
@@ -106,9 +135,7 @@ class MainProgram():
         for country in country_map.keys():
             country_specific_tweets = []
             relevant_tweet_ids = country_map[country]
-            #self.info_out.write(country + "\t" + str(len(relevant_tweets_ids)) + "\n")
-            
-            
+                      
             for relevant_tweet_id in relevant_tweet_ids:
                 country_specific_tweets.append(data[relevant_tweet_id][2])
             
@@ -160,6 +187,9 @@ class MainProgram():
 
 
     def printResults(self, name, country, top10, clusters, relevant_tweet_ids, data, filename):
+        """
+        write two output files: cluster_terms and ids.
+        """
         nmf = str(-1)
         lda = str(-1)
         kmeans = str(-1)
@@ -172,18 +202,16 @@ class MainProgram():
         else:
             clusterID_mapping = dict()
             for i in range(self.number_of_clusters):
-                #unique_id = int(time())
-                #clusterID_mapping[i] = unique_id
                 clusterID_mapping[i] = self.cluster_ID
                 self.cluster_ID += 1
-            # write file with top terms: cluster_id    term    datum    land
-
+            
+            # write file with top terms: cluster_id, algorithm_name, terms, date, country
             date = filename[:-4]
             for top in top10.keys():
                 self.cluster_out_file.write(str(clusterID_mapping[top]) + "\t" + name + "\t" + " ".join(
                     top10[top]) + "\t" + date + "\t" + country + "\n")
 
-            # write file with cluster-tweet mapping: cluster_id    latitude    longitude    tweet text
+            # write file with cluster-tweet mapping: tweet_id, nmf_cluster_id, lda_cluster_id, kmeans_cluster_id, latitude, longitude, tweet text
             for i in range(len(relevant_tweet_ids)):
                 tweet_id = relevant_tweet_ids[i]
                 geo1, geo2 = tuple((data[tweet_id][0]).split(","))
@@ -208,13 +236,22 @@ class MainProgram():
                 self.id_out_file.write(geo1 + "\t")
                 self.id_out_file.write(geo2 + "\t")
                 self.id_out_file.write(tweet_text + "\n")
+                self.tweet_counter+= 1
+            
+        # Avoiding that id output file gets to big.
+        if self.tweet_counter > 1000000:
+            self.tweet_counter = 0
+            self.id_out_file.close()
+            self.file_counter += 1
+            self.id_out_file = codecs.open(self.out_path + "ids_" + str(self.file_counter) + ".txt", "w", "utf-8")
+        
 
 
 
 if __name__ == "__main__":
     begin = time()
     path = "data/"
-    limit = None
+    limit = None # limit number of tweets per loaded file.
     special_files = None #["20151126.csv"]
     number_of_clusters = 20
     output_path = "out/"
